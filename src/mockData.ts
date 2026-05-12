@@ -24,6 +24,7 @@ export const AVAILABLE_TABS: TabConfig[] = [
   { id: 'quotation', label: 'Quotation', iconName: 'FileText' },
   { id: 'design', label: 'Design', iconName: 'ImageIcon' },
   { id: 'material', label: 'Material', iconName: 'Package' },
+  { id: 'manpower', label: 'Manpower', iconName: 'HardHat' },
   { id: 'weekly-status', label: 'Weekly Status', iconName: 'GanttChartSquare' },
   { id: 'billing', label: 'Daily Expenses', iconName: 'CreditCard' },
   { id: 'legal', label: 'Legal', iconName: 'ShieldCheck' },
@@ -32,11 +33,11 @@ export const AVAILABLE_TABS: TabConfig[] = [
 
 export const INITIAL_ROLE_PERMISSIONS: RolePermission[] = [
   { role: 'sales', allowedTabs: ['quotation'] },
-  { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'weekly-status'] },
-  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'weekly-status', 'billing', 'legal', 'accounts'] },
+  { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'manpower', 'weekly-status'] },
+  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'manpower', 'weekly-status', 'billing', 'legal', 'accounts'] },
   { role: 'client', allowedTabs: ['design', 'material', 'weekly-status'] },
-  { role: 'project', allowedTabs: ['design', 'weekly-status', 'billing'] },
-  { role: 'accounts', allowedTabs: ['design', 'material', 'weekly-status', 'billing', 'accounts'] },
+  { role: 'project', allowedTabs: ['design', 'manpower', 'weekly-status', 'billing'] },
+  { role: 'accounts', allowedTabs: ['design', 'material', 'manpower', 'weekly-status', 'billing', 'accounts'] },
   { role: 'legal', allowedTabs: ['legal'] },
 ];
 
@@ -132,6 +133,7 @@ export interface ManpowerMaster {
   id: string;
   type: string;
   ratePerDay: number;
+  skillLevel: 'unskilled' | 'semi-skilled' | 'skilled' | 'highly-skilled';
   state: string;
   city: string;
 }
@@ -246,11 +248,11 @@ export const INITIAL_MATERIALS: MaterialMaster[] = [
 ];
 
 export const INITIAL_MANPOWER: ManpowerMaster[] = [
-  { id: 'mp1', type: 'Mason', ratePerDay: 850, state: 'Maharashtra', city: 'Mumbai' },
-  { id: 'mp2', type: 'Helper', ratePerDay: 450, state: 'Delhi', city: 'New Delhi' },
-  { id: 'mp3', type: 'Electrician', ratePerDay: 900, state: 'Karnataka', city: 'Bangalore' },
-  { id: 'mp4', type: 'Painter', ratePerDay: 750, state: 'West Bengal', city: 'Kolkata' },
-  { id: 'mp5', type: 'Plumber', ratePerDay: 850, state: 'Tamil Nadu', city: 'Chennai' },
+  { id: 'mp1', type: 'Mason', ratePerDay: 850, skillLevel: 'skilled', state: 'Maharashtra', city: 'Mumbai' },
+  { id: 'mp2', type: 'Helper', ratePerDay: 450, skillLevel: 'unskilled', state: 'Delhi', city: 'New Delhi' },
+  { id: 'mp3', type: 'Electrician', ratePerDay: 900, skillLevel: 'highly-skilled', state: 'Karnataka', city: 'Bangalore' },
+  { id: 'mp4', type: 'Painter', ratePerDay: 750, skillLevel: 'skilled', state: 'West Bengal', city: 'Kolkata' },
+  { id: 'mp5', type: 'Plumber', ratePerDay: 850, skillLevel: 'skilled', state: 'Tamil Nadu', city: 'Chennai' },
 ];
 
 export const PROJECTS: Project[] = [

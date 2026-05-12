@@ -68,14 +68,14 @@ export function Header({
       </div>
 
       <div className="flex items-center gap-12">
-        <div className="hidden lg:flex items-center gap-8">
+        <div className="flex items-center gap-12">
           <div className="flex flex-col items-end">
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Client Name</span>
-            <span className="text-xs font-black text-blue-600 dark:text-blue-400">{currentClient?.name || 'N/A'}</span>
+            <span className="text-sm font-black text-blue-600 dark:text-blue-400">{currentClient?.name || 'N/A'}</span>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Project Address</span>
-            <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 max-w-[200px] text-right truncate" title={currentClient?.projectAddress}>
+            <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 max-w-[300px] text-right truncate" title={currentClient?.projectAddress}>
               {currentClient?.projectAddress || 'N/A'}
             </span>
           </div>
@@ -83,7 +83,7 @@ export function Header({
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 mr-2 text-nowrap">
-            <span className="text-[10px] text-gray-500 font-bold uppercase italic">Admin:</span>
+            <span className="text-[10px] text-gray-500 font-bold uppercase italic">Switch User:</span>
             <select 
               value={currentUser.id}
               onChange={(e) => handleImpersonationChange(e.target.value)}
