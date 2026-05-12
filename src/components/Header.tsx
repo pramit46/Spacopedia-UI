@@ -36,7 +36,7 @@ export function Header({
         <div className="flex items-center gap-3">
            <img src="/image.png" alt="SPACOPEDIA Logo" className="h-16 w-auto object-contain" referrerPolicy="no-referrer" />
            <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-2 hidden md:block" />
-           <h1 className="text-lg font-black tracking-tight hidden md:block">Project Accounting</h1>
+           <h1 className="text-lg font-black tracking-tight hidden md:block">Project Details</h1>
         </div>
         
         <div className="flex items-center gap-3 border-l dark:border-gray-700 pl-8 transition-all">

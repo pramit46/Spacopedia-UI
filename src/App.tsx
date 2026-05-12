@@ -44,6 +44,8 @@ import { DailyExpensesView } from './components/DailyExpensesView';
 import { WeeklyStatusCreateView } from './components/WeeklyStatusCreateView';
 import { WeeklyStatusView } from './components/WeeklyStatusView';
 import { AccountsView } from './components/AccountsView';
+import { LegalView } from './components/LegalView';
+import { QuotationView } from './components/QuotationView';
 
 // --- Icon Mapping Helper for Tabs ---
 const ICON_MAP: Record<string, any> = {
@@ -198,7 +200,8 @@ export default function App() {
       </nav>
 
       <main className="flex-1 flex overflow-hidden">
-        {activeTab !== 'accounts' && (
+        {/* Sidebar visibility control - Commented out for Legal, Billing, and Design pages as requested */}
+        {!['legal', 'billing', 'design', 'accounts'].includes(activeTab) && (
           <Sidebar 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -277,7 +280,19 @@ export default function App() {
                    darkMode={darkMode}
                 />
               )}
-              {!['design', 'billing', 'weekly-status', 'accounts'].includes(activeTab) && (
+              {activeTab === 'legal' && (
+                <LegalView 
+                  currentUser={currentUser}
+                  projectId={selectedProject}
+                />
+              )}
+              {activeTab === 'quotation' && (
+                <QuotationView 
+                  currentUser={currentUser}
+                  projectId={selectedProject}
+                />
+              )}
+              {!['design', 'billing', 'weekly-status', 'accounts', 'legal', 'quotation'].includes(activeTab) && (
                 <div className="flex flex-col items-center justify-center min-h-[50vh] text-center border-2 border-dashed dark:border-gray-800 rounded-3xl p-12">
                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 text-gray-400">
                      <FileText className="w-8 h-8" />
