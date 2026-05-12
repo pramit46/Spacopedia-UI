@@ -24,7 +24,6 @@ export const AVAILABLE_TABS: TabConfig[] = [
   { id: 'quotation', label: 'Quotation', iconName: 'FileText' },
   { id: 'design', label: 'Design', iconName: 'ImageIcon' },
   { id: 'material', label: 'Material', iconName: 'Package' },
-  { id: 'manpower', label: 'Manpower', iconName: 'HardHat' },
   { id: 'weekly-status', label: 'Weekly Status', iconName: 'GanttChartSquare' },
   { id: 'billing', label: 'Daily Expenses', iconName: 'CreditCard' },
   { id: 'legal', label: 'Legal', iconName: 'ShieldCheck' },
@@ -33,11 +32,11 @@ export const AVAILABLE_TABS: TabConfig[] = [
 
 export const INITIAL_ROLE_PERMISSIONS: RolePermission[] = [
   { role: 'sales', allowedTabs: ['quotation'] },
-  { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'manpower', 'weekly-status'] },
-  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'manpower', 'weekly-status', 'billing', 'legal', 'accounts'] },
+  { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'weekly-status'] },
+  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'weekly-status', 'billing', 'legal', 'accounts'] },
   { role: 'client', allowedTabs: ['design', 'material', 'weekly-status'] },
-  { role: 'project', allowedTabs: ['design', 'manpower', 'weekly-status', 'billing'] },
-  { role: 'accounts', allowedTabs: ['design', 'material', 'manpower', 'weekly-status', 'billing', 'accounts'] },
+  { role: 'project', allowedTabs: ['design', 'weekly-status', 'billing'] },
+  { role: 'accounts', allowedTabs: ['design', 'material', 'weekly-status', 'billing', 'accounts'] },
   { role: 'legal', allowedTabs: ['legal'] },
 ];
 
@@ -108,6 +107,7 @@ export interface Vendor {
   city: string;
   poc: string;
   contactNumber: string;
+  rating?: number;
 }
 
 export interface ClientMaster {
@@ -163,7 +163,8 @@ export const VENDORS: Vendor[] = [
     state: 'Maharashtra',
     city: 'Mumbai',
     poc: 'Ramesh Kumar',
-    contactNumber: '+91 98765 43210'
+    contactNumber: '+91 98765 43210',
+    rating: 4.8
   },
   { 
     id: 'v2', 
@@ -173,7 +174,8 @@ export const VENDORS: Vendor[] = [
     state: 'Karnataka',
     city: 'Bangalore',
     poc: 'Suresh Raina',
-    contactNumber: '+91 87654 32109'
+    contactNumber: '+91 87654 32109',
+    rating: 4.5
   },
   { 
     id: 'v3', 
@@ -183,7 +185,8 @@ export const VENDORS: Vendor[] = [
     state: 'Delhi',
     city: 'New Delhi',
     poc: 'Amit Singh',
-    contactNumber: '+91 76543 21098'
+    contactNumber: '+91 76543 21098',
+    rating: 4.9
   },
   { 
     id: 'v4', 
@@ -193,7 +196,8 @@ export const VENDORS: Vendor[] = [
     state: 'West Bengal',
     city: 'Kolkata',
     poc: 'Debashis Roy',
-    contactNumber: '+91 65432 10987'
+    contactNumber: '+91 65432 10987',
+    rating: 4.2
   },
 ];
 

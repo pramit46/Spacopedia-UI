@@ -40,7 +40,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { SettingsPage } from './components/SettingsPage';
 import { DesignView } from './components/DesignView';
-import { BillingView } from './components/BillingView';
+import { DailyExpensesView } from './components/DailyExpensesView';
 import { WeeklyStatusCreateView } from './components/WeeklyStatusCreateView';
 import { WeeklyStatusView } from './components/WeeklyStatusView';
 import { AccountsView } from './components/AccountsView';
@@ -232,7 +232,7 @@ export default function App() {
                 />
               )}
               {activeTab === 'billing' && (
-                <BillingView 
+                <DailyExpensesView 
                   currentUser={currentUser} 
                   items={expenses} 
                   onDelete={(id) => setExpenses(prev => prev.filter(e => e.id !== id))}

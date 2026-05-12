@@ -3,14 +3,14 @@ import { Plus, CheckCircle2, FileText, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Expense } from '../mockData';
 
-interface BillingViewProps {
+interface DailyExpensesViewProps {
   currentUser: User;
   items: Expense[];
   onDelete: (id: string) => void;
   onAdd: (e: Expense) => void;
 }
 
-export function BillingView({ currentUser, items, onDelete, onAdd }: BillingViewProps) {
+export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: DailyExpensesViewProps) {
   const [showAdd, setShowAdd] = useState(false);
 
   return (

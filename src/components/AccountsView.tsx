@@ -85,23 +85,6 @@ export function AccountsView({
           <h2 className="text-3xl font-black mb-2">Project Accounting</h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Financial oversight, resource allocation, and payment lifecycle tracking.</p>
         </div>
-        
-        <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-2xl border dark:border-gray-700">
-           <div className="flex flex-col items-end px-3">
-             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Active Session</span>
-             <span className="text-sm font-black text-blue-600 dark:text-blue-400">{projectId}</span>
-           </div>
-           <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
-           <div className="flex items-center gap-3 pl-1 pr-3">
-             <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-black">
-               {currentUser.name.charAt(0)}
-             </div>
-             <div>
-               <p className="text-xs font-bold leading-none mb-0.5">{currentUser.name}</p>
-               <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{currentUser.role}</p>
-             </div>
-           </div>
-        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
