@@ -28,15 +28,16 @@ export const AVAILABLE_TABS: TabConfig[] = [
   { id: 'billing', label: 'Daily Expenses', iconName: 'CreditCard' },
   { id: 'legal', label: 'Legal', iconName: 'ShieldCheck' },
   { id: 'accounts', label: 'Accounts', iconName: 'LayoutDashboard' },
+  { id: 'settings', label: 'Settings', iconName: 'Settings' },
 ];
 
 export const INITIAL_ROLE_PERMISSIONS: RolePermission[] = [
   { role: 'sales', allowedTabs: ['quotation'] },
   { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'weekly-status'] },
-  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'weekly-status', 'billing', 'legal', 'accounts'] },
+  { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'weekly-status', 'billing', 'legal', 'accounts', 'settings'] },
   { role: 'client', allowedTabs: ['design', 'material', 'weekly-status'] },
   { role: 'project', allowedTabs: ['design', 'weekly-status', 'billing'] },
-  { role: 'accounts', allowedTabs: ['design', 'material', 'weekly-status', 'billing', 'accounts'] },
+  { role: 'accounts', allowedTabs: ['design', 'material', 'weekly-status', 'billing', 'accounts', 'settings'] },
   { role: 'legal', allowedTabs: ['legal'] },
 ];
 

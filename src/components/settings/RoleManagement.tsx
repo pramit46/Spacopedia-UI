@@ -7,7 +7,10 @@ import {
   X, 
   FileText,
   LayoutDashboard,
-  Code
+  Code,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -23,7 +26,8 @@ const ICON_MAP: Record<string, any> = {
   GanttChartSquare: LayoutDashboard,
   CreditCard: LayoutDashboard,
   ShieldCheck: LayoutDashboard,
-  LayoutDashboard
+  LayoutDashboard,
+  Settings: LayoutDashboard
 };
 
 interface RoleManagementProps {
@@ -44,6 +48,28 @@ export function RoleManagement({
   const [isAddingRole, setIsAddingRole] = useState(false);
   const [showJson, setShowJson] = useState(false);
   const [lastGeneratedJson, setLastGeneratedJson] = useState<string>('');
+  const [sortConfig, setSortConfig] = useState<{ key: 'role'; direction: 'asc' | 'desc' } | null>({ key: 'role', direction: 'asc' });
+
+  const requestSort = () => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key: 'role', direction });
+  };
+
+  const sortedRolePermissions = [...rolePermissions].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { direction } = sortConfig;
+    if (a.role < b.role) return direction === 'asc' ? -1 : 1;
+    if (a.role > b.role) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortIcon = () => {
+    if (!sortConfig) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-20 group-hover:opacity-100 transition-opacity" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 text-blue-500" /> : <ChevronDown className="w-3 h-3 ml-1 text-blue-500" />;
+  };
 
   const generateBackendPayload = (permissions: RolePermission[]) => {
     const payload = {
@@ -188,7 +214,14 @@ export function RoleManagement({
           <table className="w-full text-left">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50">
-                <th className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-r dark:border-gray-800 w-48">System Access Nodes</th>
+                <th 
+                  onClick={requestSort}
+                  className="px-8 py-6 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest border-r dark:border-gray-800 w-48 cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    System Access Nodes <SortIcon />
+                  </div>
+                </th>
                 {AVAILABLE_TABS.map(tab => (
                   <th key={tab.id} className="px-4 py-6 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-center min-w-[100px]">
                     <div className="flex flex-col items-center gap-1.5">
@@ -200,7 +233,7 @@ export function RoleManagement({
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {rolePermissions.map(rp => (
+              {sortedRolePermissions.map(rp => (
                 <tr key={rp.role} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-8 py-5 font-bold text-gray-700 dark:text-gray-300 border-r dark:border-gray-800">
                     <div className="flex items-center gap-2 capitalize text-sm">

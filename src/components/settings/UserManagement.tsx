@@ -7,7 +7,10 @@ import {
   Trash2, 
   Plus, 
   X, 
-  Search 
+  Search,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Role } from '../../mockData';
@@ -29,6 +32,7 @@ export function UserManagement({
 }: UserManagementProps) {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
 
   const handleUpdateUser = (updatedUser: User) => {
     if (!canEdit) return;
@@ -58,6 +62,30 @@ export function UserManagement({
     u.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const requestSort = (key: keyof User) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    const aValue = a[key].toString().toLowerCase();
+    const bValue = b[key].toString().toLowerCase();
+    
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortIcon = ({ column }: { column: keyof User }) => {
+    if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-20" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 text-blue-500" /> : <ChevronDown className="w-3 h-3 ml-1 text-blue-500" />;
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -76,18 +104,36 @@ export function UserManagement({
         )}
       </header>
 
-      <div className="relative group max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-        <input 
-          placeholder="Filter users by name or role..."
-          className="w-full bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between">
+        <div className="relative group max-w-md w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+          <input 
+            placeholder="Filter users by name or role..."
+            className="w-full bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-xl border dark:border-gray-800">
+          <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-2">Sort By:</span>
+          <button 
+            onClick={() => requestSort('name')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortConfig?.key === 'name' ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Name <SortIcon column="name" />
+          </button>
+          <button 
+            onClick={() => requestSort('role')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortConfig?.key === 'role' ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Role <SortIcon column="role" />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {filteredUsers.map(user => (
+        {sortedUsers.map(user => (
           <div key={user.id} className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-[2rem] p-6 flex items-center justify-between shadow-sm group hover:border-blue-100 dark:hover:border-blue-900/30 transition-all">
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500 ring-1 ring-gray-200 dark:ring-gray-700 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 transition-colors">
