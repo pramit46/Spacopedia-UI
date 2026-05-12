@@ -59,7 +59,6 @@ const ICON_MAP: Record<string, any> = {
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User>(USERS[0]);
   const [activeTab, setActiveTab] = useState('design');
-  const [activeAccountSubView, setActiveAccountSubView] = useState<AccountSubView>('overview');
   const [darkMode, setDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedProject, setSelectedProject] = useState(PROJECTS[0].id);
@@ -199,20 +198,20 @@ export default function App() {
       </nav>
 
       <main className="flex-1 flex overflow-hidden">
-        <Sidebar 
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          currentUser={currentUser}
-          isCreatingStatus={isCreatingStatus}
-          setIsCreatingStatus={setIsCreatingStatus}
-          groupedStatuses={groupedStatuses}
-          selectedWeekId={selectedWeekId}
-          setSelectedWeekId={setSelectedWeekId}
-          collapsedItems={collapsedItems}
-          toggleCollapse={toggleCollapse}
-          activeAccountSubView={activeAccountSubView}
-          setActiveAccountSubView={setActiveAccountSubView}
-        />
+        {activeTab !== 'accounts' && (
+          <Sidebar 
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            currentUser={currentUser}
+            isCreatingStatus={isCreatingStatus}
+            setIsCreatingStatus={setIsCreatingStatus}
+            groupedStatuses={groupedStatuses}
+            selectedWeekId={selectedWeekId}
+            setSelectedWeekId={setSelectedWeekId}
+            collapsedItems={collapsedItems}
+            toggleCollapse={toggleCollapse}
+          />
+        )}
 
         <section className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 no-scrollbar">
           <AnimatePresence mode="wait">
@@ -274,8 +273,8 @@ export default function App() {
                    payments={payments}
                    costs={costs}
                    vendors={vendors}
-                   activeSubView={activeAccountSubView}
                    projectId={selectedProject}
+                   darkMode={darkMode}
                 />
               )}
               {!['design', 'billing', 'weekly-status', 'accounts'].includes(activeTab) && (

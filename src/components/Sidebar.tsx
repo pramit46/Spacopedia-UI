@@ -14,9 +14,6 @@ interface SidebarComponentProps extends SidebarProps {
   setSelectedWeekId: (id: string) => void;
   collapsedItems: Record<string, boolean>;
   toggleCollapse: (key: string) => void;
-  isAccountsView?: boolean;
-  activeAccountSubView?: string;
-  setActiveAccountSubView?: (view: any) => void;
 }
 
 export function Sidebar({ 
@@ -29,11 +26,8 @@ export function Sidebar({
   selectedWeekId,
   setSelectedWeekId,
   collapsedItems,
-  toggleCollapse,
-  isAccountsView,
-  activeAccountSubView,
-  setActiveAccountSubView
-}: any) {
+  toggleCollapse
+}: SidebarComponentProps) {
   return (
     <aside className="w-64 border-r dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 hidden lg:flex flex-col p-4 overflow-y-auto">
       {activeTab === 'weekly-status' ? (
@@ -102,29 +96,7 @@ export function Sidebar({
             </div>
           </div>
         </div>
-      ) : activeTab === 'accounts' ? (
-        <div className="flex-1 space-y-6">
-          <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Account Views</h3>
-          <div className="space-y-1">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'payments', label: 'Payments' },
-              { id: 'vendors', label: 'Vendors' },
-              { id: 'materials', label: 'Materials' },
-              { id: 'cost-analysis', label: 'Cost Analysis' }
-            ].map((sub) => (
-              <button
-                key={sub.id}
-                onClick={() => setActiveAccountSubView && setActiveAccountSubView(sub.id as any)}
-                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-between transition-all ${activeAccountSubView === sub.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-              >
-                {sub.label}
-                {activeAccountSubView === sub.id && <ChevronRight className="w-4 h-4" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
+      ) : activeTab === 'accounts' ? null : (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
           <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
             <LayoutDashboard className="w-6 h-6" />
