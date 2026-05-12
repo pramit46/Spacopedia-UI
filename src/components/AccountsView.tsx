@@ -91,22 +91,32 @@ export function AccountsView({
       return acc;
     }, [] as any[]);
 
-  const SectionHeader = ({ id, title, icon: Icon }: { id: string; title: string; icon: any }) => (
-    <button 
-      onClick={() => toggleSection(id)}
-      className="w-full flex items-center justify-between p-6 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all rounded-2xl group border dark:border-gray-800"
-    >
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-white dark:bg-gray-900 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-          <Icon className="w-5 h-5 text-blue-600" />
+  const SectionHeader = ({ id, title, icon: Icon }: { id: string; title: string; icon: any }) => {
+    const lightHeaderColors = {
+      overview: 'bg-blue-50/50 dark:bg-blue-900/10',
+      payments: 'bg-green-50/50 dark:bg-green-900/10',
+      vendors: 'bg-purple-50/50 dark:bg-purple-900/10',
+      procurement: 'bg-orange-50/50 dark:bg-orange-900/10',
+      analysis: 'bg-indigo-50/50 dark:bg-indigo-900/10'
+    };
+    
+    return (
+      <button 
+        onClick={() => toggleSection(id)}
+        className={`w-full flex items-center justify-between p-6 ${lightHeaderColors[id as keyof typeof lightHeaderColors]} hover:opacity-80 transition-all rounded-3xl group border dark:border-gray-800`}
+      >
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+            <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+          </div>
+          <h3 className="text-xl font-black italic tracking-tight">{title}</h3>
         </div>
-        <h3 className="text-xl font-black italic tracking-tight">{title}</h3>
-      </div>
-      <div className={`p-2 rounded-full bg-white dark:bg-gray-900 transition-transform ${expandedSections[id] ? 'rotate-180' : ''}`}>
-        <ChevronDown className="w-4 h-4" />
-      </div>
-    </button>
-  );
+        <div className={`p-2 rounded-full bg-white dark:bg-gray-900 transition-transform ${expandedSections[id] ? 'rotate-180' : ''}`}>
+          <ChevronDown className="w-4 h-4" />
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="space-y-12 pb-24">
@@ -265,32 +275,47 @@ export function AccountsView({
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                {vendors.length > 0 ? vendors.map((vendor) => (
-                  <div key={vendor.id} className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border dark:border-gray-700 shadow-sm flex items-center justify-between group hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-blue-600 font-black text-xl">
-                        {vendor.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h5 className="font-black text-lg">{vendor.name}</h5>
-                        <p className="text-sm text-gray-500 font-medium">{vendor.type}</p>
-                        <div className="flex items-center gap-1.5 mt-2 bg-orange-50 dark:bg-orange-950/20 px-2 py-0.5 rounded-lg w-fit">
-                          <Star className="w-3.5 h-3.5 text-orange-400 fill-current" />
-                          <span className="text-[11px] font-black text-orange-600">{vendor.rating}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Paylines</p>
-                      <p className="text-xl font-black text-gray-900 dark:text-white">₹{costs.filter(c => c.vendorId === vendor.id).reduce((s, c) => s + c.amount, 0).toLocaleString()}</p>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="col-span-2 py-20 text-center text-gray-400 font-medium italic bg-gray-50 dark:bg-gray-800/50 rounded-3xl border dark:border-gray-700 border-dashed">
-                    No vendors associated with the current project session.
-                  </div>
-                )}
+              <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm pt-4">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          <th className="px-8 py-5">Vendor Agent</th>
+                          <th className="px-6 py-5">Specification</th>
+                          <th className="px-6 py-5 text-center">Identity Rating</th>
+                          <th className="px-8 py-5 text-right">Cumulative Spend</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y dark:divide-gray-700">
+                        {vendors.length > 0 ? vendors.map((vendor) => (
+                          <tr key={vendor.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-700/30 transition-colors">
+                            <td className="px-8 py-6">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-black text-sm">
+                                  {vendor.name.charAt(0)}
+                                </div>
+                                <span className="font-extrabold text-gray-900 dark:text-gray-100">{vendor.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6 text-sm font-medium text-gray-500">{vendor.type}</td>
+                            <td className="px-6 py-6 text-center">
+                              <div className="flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-orange-950/20 px-2 py-1 rounded-lg inline-flex">
+                                <Star className="w-3 h-3 text-orange-400 fill-current" />
+                                <span className="text-[11px] font-black text-orange-600">{vendor.rating}</span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6 text-right font-black text-lg text-gray-900 dark:text-gray-100">
+                              ₹{costs.filter(c => c.vendorId === vendor.id).reduce((s, c) => s + c.amount, 0).toLocaleString()}
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr>
+                            <td colSpan={4} className="px-10 py-16 text-center text-gray-400 font-medium italic">No vendors associated with the current project session.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                </div>
               </div>
             </motion.div>
           )}
@@ -309,34 +334,6 @@ export function AccountsView({
               className="overflow-hidden"
             >
               <div className="space-y-8 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-orange-600 p-10 rounded-[2.5rem] text-white shadow-2xl shadow-orange-600/30 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white/20 rounded-2xl">
-                          <AlertCircle className="w-8 h-8" />
-                        </div>
-                        <h4 className="text-2xl font-black italic">Reorder Alerts</h4>
-                      </div>
-                      <p className="opacity-80 font-medium max-w-xs">Critical inventory nodes below safety threshold. Procurement recommended.</p>
-                    </div>
-                    <div className="text-6xl font-black opacity-30">02</div>
-                  </div>
-                  
-                  <div className="bg-blue-600 p-10 rounded-[2.5rem] text-white shadow-2xl shadow-blue-600/30 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white/20 rounded-2xl">
-                          <Package className="w-8 h-8" />
-                        </div>
-                        <h4 className="text-2xl font-black italic">Inventory Capital</h4>
-                      </div>
-                      <p className="opacity-80 font-medium max-w-xs">Total immobilized capital across active material nodes.</p>
-                    </div>
-                    <div className="text-4xl font-black">₹42.8k</div>
-                  </div>
-                </div>
-
                 <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border dark:border-gray-700 overflow-hidden shadow-sm">
                   <div className="p-10 border-b dark:border-gray-700 flex items-center justify-between">
                     <div>
@@ -349,13 +346,14 @@ export function AccountsView({
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-gray-50/50 dark:bg-gray-800/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          <th className="px-10 py-5 text-center w-20">#</th>
                           <th className="px-10 py-5">Material Item</th>
                           <th className="px-6 py-5">Target Supplier</th>
-                          <th className="px-6 py-5">Payload Qty</th>
+                          <th className="px-6 py-5 text-center">Payload Qty</th>
                           <th className="px-10 py-5 text-right">Settlement Value</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y dark:divide-gray-700">
+                      <tbody className="divide-y dark:divide-gray-800">
                         {[
                           { item: 'Cement (OPC)', supplier: 'BuildStrong Civil', qty: '500 Bags', value: 12500 },
                           { item: 'Steel Rebars (12mm)', supplier: 'BuildStrong Civil', qty: '2.5 Tons', value: 18000 },
@@ -363,10 +361,11 @@ export function AccountsView({
                           { item: 'Primary Emulsion', supplier: 'Perfect Finish Paints', qty: '20 Buckets', value: 3100 },
                           { item: 'Plywood (19mm)', supplier: 'WoodWizard Carpentry', qty: '45 Sheets', value: 5000 },
                         ].map((mat, i) => (
-                          <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
-                            <td className="px-10 py-6 font-bold">{mat.item}</td>
+                          <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                            <td className="px-10 py-6 text-center font-black text-gray-300 dark:text-gray-600">{i + 1}</td>
+                            <td className="px-10 py-6 font-extrabold">{mat.item}</td>
                             <td className="px-6 py-6 text-sm font-medium text-gray-500">{mat.supplier}</td>
-                            <td className="px-6 py-6 text-sm font-black text-gray-400">{mat.qty}</td>
+                            <td className="px-6 py-6 text-center text-sm font-black text-gray-400">{mat.qty}</td>
                             <td className="px-10 py-6 text-right font-black text-blue-600">₹{mat.value.toLocaleString()}</td>
                           </tr>
                         ))}
