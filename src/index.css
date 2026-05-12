@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #007bff;
+  --color-primary-dark: #0056b3;
+}
+
+@layer base {
+  body {
+    @apply transition-colors duration-300;
+  }
+}
+
+/* Explicitly define dark variant to use .dark class in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --card: #1f2937;
+  --border: #374151;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #f3f4f6;
+  --border: #e5e7eb;
+}
+
+.markdown-body {
+  @apply text-slate-700 dark:text-slate-300;
+}
