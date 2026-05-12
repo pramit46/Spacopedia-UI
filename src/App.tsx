@@ -124,8 +124,10 @@ export default function App() {
 
   const currentRolePerm = rolePermissions.find(p => p.role === currentUser.role);
   const visibleTabs = AVAILABLE_TABS.filter(tab => 
-    currentRolePerm?.allowedTabs.includes(tab.id)
+    tab.id !== 'settings' && currentRolePerm?.allowedTabs.includes(tab.id)
   );
+  
+  const canAccessSettings = currentRolePerm?.allowedTabs.includes('settings');
 
   // Group Weekly Status Logs for Sidebar
   const groupedStatuses = weeklyStatusLogs.reduce((acc, log) => {
@@ -169,6 +171,7 @@ export default function App() {
         projects={PROJECTS}
         handleImpersonationChange={handleImpersonationChange}
         setShowSettings={setShowSettings}
+        canAccessSettings={canAccessSettings}
       />
 
       <nav className="bg-gray-50/50 dark:bg-gray-800/20 border-b dark:border-gray-800 px-6 flex items-end gap-1 safe-area-x overflow-x-auto no-scrollbar">

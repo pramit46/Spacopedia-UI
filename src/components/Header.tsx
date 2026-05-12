@@ -15,6 +15,7 @@ interface HeaderProps {
   projects: Project[];
   handleImpersonationChange: (id: string) => void;
   setShowSettings: (val: boolean) => void;
+  canAccessSettings?: boolean;
 }
 
 export function Header({
@@ -25,7 +26,8 @@ export function Header({
   setSelectedProject,
   projects,
   handleImpersonationChange,
-  setShowSettings
+  setShowSettings,
+  canAccessSettings = false
 }: HeaderProps) {
   const currentProject = projects.find(p => p.id === selectedProject);
   const currentClient = clients.find(c => c.id === currentProject?.clientId);
@@ -94,15 +96,17 @@ export function Header({
               ))}
             </select>
           </div>
-
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors relative group"
-            title="Open Settings"
-          >
-            <SettingsIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-            {currentUser.role === 'owner' && <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse" />}
-          </button>
+ 
+          {canAccessSettings && (
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors relative group"
+              title="Open Settings"
+            >
+              <SettingsIcon className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+              {currentUser.role === 'owner' && <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse" />}
+            </button>
+          )}
         </div>
       </div>
     </header>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users as UsersIcon, Search, Plus, Trash2, Edit2, X, Eye, EyeOff, Phone, Mail } from 'lucide-react';
+import { Users as UsersIcon, Search, Plus, Trash2, Edit2, X, Eye, EyeOff, Phone, Mail, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ClientMaster } from '../../mockData';
 
@@ -14,11 +14,36 @@ export function ClientManagement({ clients, setClients, canEdit }: ClientManagem
   const [maskContact, setMaskContact] = useState(true);
   const [editingItem, setEditingItem] = useState<ClientMaster | null>(null);
   const [isAddingItem, setIsAddingItem] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof ClientMaster; direction: 'asc' | 'desc' } | null>(null);
 
   const filteredClients = clients.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const requestSort = (key: keyof ClientMaster) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedClients = [...filteredClients].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    const aValue = (a[key] || '').toString().toLowerCase();
+    const bValue = (b[key] || '').toString().toLowerCase();
+    
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortIcon = ({ column }: { column: keyof ClientMaster }) => {
+    if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-20 group-hover:opacity-100 transition-opacity" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 text-blue-500" /> : <ChevronDown className="w-3 h-3 ml-1 text-blue-500" />;
+  };
 
   const handleDelete = (id: string) => {
     if (!canEdit) return;
@@ -76,8 +101,22 @@ export function ClientManagement({ clients, setClients, canEdit }: ClientManagem
           <table className="w-full text-left">
             <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Client Name</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Contact Details</th>
+                <th 
+                  onClick={() => requestSort('name')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    Client Name <SortIcon column="name" />
+                  </div>
+                </th>
+                <th 
+                  onClick={() => requestSort('email')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    Contact Details <SortIcon column="email" />
+                  </div>
+                </th>
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
                    {canEdit && <span className="mr-4">Actions</span>}
                    <button 
@@ -91,7 +130,7 @@ export function ClientManagement({ clients, setClients, canEdit }: ClientManagem
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {filteredClients.map(c => (
+              {sortedClients.map(c => (
                 <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-6 py-4">
                     <p className="font-bold">{c.name}</p>

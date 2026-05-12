@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Search, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { Package, Search, Plus, Trash2, Edit2, X, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MaterialMaster } from '../../mockData';
 
@@ -13,12 +13,44 @@ export function MaterialManagement({ materials, setMaterials, canEdit }: Materia
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItem, setEditingItem] = useState<MaterialMaster | null>(null);
   const [isAddingItem, setIsAddingItem] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof MaterialMaster; direction: 'asc' | 'desc' } | null>(null);
 
   const filteredMaterials = materials.filter(m => 
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const requestSort = (key: keyof MaterialMaster) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedMaterials = [...filteredMaterials].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    const aValue = a[key] ?? '';
+    const bValue = b[key] ?? '';
+    
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+    
+    const sA = aValue.toString().toLowerCase();
+    const sB = bValue.toString().toLowerCase();
+    
+    if (sA < sB) return direction === 'asc' ? -1 : 1;
+    if (sA > sB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortIcon = ({ column }: { column: keyof MaterialMaster }) => {
+    if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-20 group-hover:opacity-100 transition-opacity" />;
+    return sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 text-blue-500" /> : <ChevronDown className="w-3 h-3 ml-1 text-blue-500" />;
+  };
 
   const handleDelete = (id: string) => {
     if (!canEdit) return;
@@ -76,14 +108,35 @@ export function MaterialManagement({ materials, setMaterials, canEdit }: Materia
           <table className="w-full text-left">
             <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Material & Category</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Location</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Unit/Rate</th>
+                <th 
+                  onClick={() => requestSort('name')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    Material & Category <SortIcon column="name" />
+                  </div>
+                </th>
+                <th 
+                  onClick={() => requestSort('city')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    Location <SortIcon column="city" />
+                  </div>
+                </th>
+                <th 
+                  onClick={() => requestSort('rate')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center cursor-pointer group"
+                >
+                  <div className="flex items-center justify-center">
+                    Unit/Rate <SortIcon column="rate" />
+                  </div>
+                </th>
                 {canEdit && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {filteredMaterials.map(m => (
+              {sortedMaterials.map(m => (
                 <tr key={m.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-6 py-4">
                     <p className="font-bold">{m.name}</p>
