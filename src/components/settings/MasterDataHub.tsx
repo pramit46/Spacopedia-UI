@@ -6,8 +6,9 @@ import { ManpowerManagement } from './ManpowerManagement';
 import PriceMasterData from './PriceMasterData';
 import { ClientPaymentsView } from './ClientPaymentsView';
 import { VendorSettlementsView } from './VendorSettlementsView';
-import { Building2, User as UserIcon, HardHat, Tag, Database, List } from 'lucide-react';
+import { Building2, User as UserIcon, HardHat, Tag, Database, List, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import MaterialLookup from './MaterialLookup';
 
 interface MasterDataHubProps {
   vendors: Vendor[];
@@ -40,13 +41,14 @@ export function MasterDataHub({
   selectedProject,
   canEdit
 }: MasterDataHubProps) {
-  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing' | 'client-payments' | 'vendor-settlements'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing' | 'material-lookup' | 'client-payments' | 'vendor-settlements'>('clients');
 
   const tabs = [
     { id: 'clients', label: 'Clients', icon: UserIcon },
     { id: 'vendors', label: 'Vendors', icon: Building2 },
     { id: 'manpower', label: 'Manpower', icon: HardHat },
     { id: 'pricing', label: 'Pricing', icon: Tag },
+    { id: 'material-lookup', label: 'Material Lookup', icon: Package },
     { id: 'client-payments', label: 'Client Payments', icon: Database },
     { id: 'vendor-settlements', label: 'Vendor Settlements', icon: List },
   ];
@@ -95,6 +97,9 @@ export function MasterDataHub({
             )}
             {activeTab === 'pricing' && (
               <PriceMasterData />
+            )}
+            {activeTab === 'material-lookup' && (
+              <MaterialLookup />
             )}
             {activeTab === 'client-payments' && (
               <ClientPaymentsView 

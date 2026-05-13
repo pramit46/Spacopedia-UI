@@ -30,6 +30,12 @@ async function startServer() {
     res.json({ status: "success", starred });
   });
 
+  app.post("/api/quotation/save", (req, res) => {
+    const { items } = req.body;
+    console.log("Saving quotation delta:", items.length, "items");
+    res.json({ status: "success", timestamp: new Date().toISOString() });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

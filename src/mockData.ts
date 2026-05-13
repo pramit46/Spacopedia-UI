@@ -35,8 +35,8 @@ export const INITIAL_ROLE_PERMISSIONS: RolePermission[] = [
   { role: 'sales', allowedTabs: ['quotation'] },
   { role: 'designer', allowedTabs: ['quotation', 'design', 'material', 'weekly-status'] },
   { role: 'owner', allowedTabs: ['quotation', 'design', 'material', 'weekly-status', 'billing', 'legal', 'accounts', 'settings'] },
-  { role: 'client', allowedTabs: ['design', 'material', 'weekly-status'] },
-  { role: 'project', allowedTabs: ['design', 'weekly-status', 'billing'] },
+  { role: 'client', allowedTabs: ['quotation', 'design', 'material', 'weekly-status'] },
+  { role: 'project', allowedTabs: ['quotation', 'design', 'weekly-status', 'billing'] },
   { role: 'accounts', allowedTabs: ['design', 'material', 'weekly-status', 'billing', 'accounts', 'settings'] },
   { role: 'legal', allowedTabs: ['legal'] },
 ];
