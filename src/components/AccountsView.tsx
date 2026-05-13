@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Star, 
   Package, 
   AlertCircle,
   ChevronDown,
   LayoutDashboard,
-  FileText
+  FileText,
+  ChevronUp,
+  Maximize2,
+  X,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -19,9 +23,6 @@ import {
   PieChart, 
   Pie, 
   Cell, 
-  BarChart, 
-  Bar, 
-  Legend 
 } from 'recharts';
 import { 
   User, 
@@ -47,29 +48,18 @@ export function AccountsView({
   projectId,
   darkMode = false
 }: AccountsViewProps) {
-  const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>({
-    overview: true,
-    payments: true,
-    vendors: true,
-    procurement: true,
-    analysis: true
-  });
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<ProjectPayment | null>(null);
 
-  const toggleSection = (id: string) => {
-    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  // Filter data by active project
   const payments = allPayments.filter(p => p.projectId === projectId);
   const costs = allCosts.filter(c => c.projectId === projectId);
-  
-  // Filter vendors to those involved in the current project
   const projectVendorIds = new Set(costs.map(c => c.vendorId));
   const vendors = allVendors.filter(v => projectVendorIds.has(v.id));
 
-  const totalCost = costs.reduce((sum, item) => sum + item.amount, 0);
-  const totalPaid = payments.filter(p => p.status === 'received').reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = Math.max(0, totalCost - totalPaid);
+  const totalProjectValue = costs.reduce((sum, item) => sum + item.amount, 0);
+  const totalCollected = payments.filter(p => p.status === 'received').reduce((sum, p) => sum + p.amount, 0);
+  const clientBalance = Math.max(0, totalProjectValue - totalCollected);
+  const totalPaidToVendors = costs.filter(c => c.status === 'Paid').reduce((sum, c) => sum + c.amount, 0);
   
   const costBySection = costs.reduce((acc, item) => {
     acc[item.section] = (acc[item.section] || 0) + item.amount;
@@ -91,361 +81,293 @@ export function AccountsView({
       return acc;
     }, [] as any[]);
 
-  const SectionHeader = ({ id, title, icon: Icon }: { id: string; title: string; icon: any }) => {
-    const lightHeaderColors = {
-      overview: 'bg-blue-50/50 dark:bg-blue-900/10',
-      payments: 'bg-green-50/50 dark:bg-green-900/10',
-      vendors: 'bg-purple-50/50 dark:bg-purple-900/10',
-      procurement: 'bg-orange-50/50 dark:bg-orange-900/10',
-      analysis: 'bg-indigo-50/50 dark:bg-indigo-900/10'
-    };
-    
-    return (
-      <button 
-        onClick={() => toggleSection(id)}
-        className={`w-full flex items-center justify-between p-6 ${lightHeaderColors[id as keyof typeof lightHeaderColors]} hover:opacity-80 transition-all rounded-3xl group border dark:border-gray-800`}
+  const DetailModal = ({ title, data, onClose }: { title: string; data: any[]; onClose: () => void }) => (
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    >
+      <motion.div 
+        initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+        className="bg-white dark:bg-gray-950 w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
       >
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
-            <Icon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+        <div className="p-8 border-b dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+          <div>
+            <h3 className="text-2xl font-black italic tracking-tight">{title}</h3>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Detailed Ledger Account</p>
           </div>
-          <h3 className="text-xl font-black italic tracking-tight">{title}</h3>
+          <button onClick={onClose} className="p-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-2xl transition-all">
+            <X className="w-6 h-6" />
+          </button>
         </div>
-        <div className={`p-2 rounded-full bg-white dark:bg-gray-900 transition-transform ${expandedSections[id] ? 'rotate-180' : ''}`}>
-          <ChevronDown className="w-4 h-4" />
+        <div className="flex-1 overflow-y-auto p-2">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b dark:border-gray-800">
+                <th className="px-8 py-6">Execution Date</th>
+                <th className="px-8 py-6">Particulars / Description</th>
+                <th className="px-6 py-6 text-right">Fiscal Value</th>
+                <th className="px-8 py-6 text-right">Proof</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y dark:divide-gray-800">
+              {data.map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-900/10 transition-colors">
+                  <td className="px-8 py-6 text-xs font-bold text-gray-400 font-mono italic">{item.date}</td>
+                  <td className="px-8 py-6">
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300">{item.description || item.tranche || 'General Settlement'}</p>
+                  </td>
+                  <td className="px-6 py-6 text-right">
+                    <p className="text-lg font-black italic text-blue-600">₹{item.amount.toLocaleString()}</p>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    {item.attachment ? (
+                      <a 
+                        href={`#${item.attachment}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-blue-600 hover:scale-110 transition-transform inline-block"
+                      >
+                        <ExternalLink className="w-5 h-5" />
+                      </a>
+                    ) : (
+                      <span className="text-[9px] font-black uppercase text-gray-300">Pending</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </button>
-    );
-  };
+      </motion.div>
+    </motion.div>
+  );
 
   return (
-    <div className="space-y-12 pb-24">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="flex flex-col gap-10 font-sans p-4">
+      <header className="flex justify-between items-end bg-white dark:bg-gray-950 p-10 rounded-[3rem] border dark:border-gray-800 shadow-xl shrink-0">
         <div>
-          <h2 className="text-4xl font-black italic mb-2">Project Accounting</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Holistic financial health and procurement lifecycle control.</p>
+          <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest italic mb-2">
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Financial Overview</span>
+          </div>
+          <h2 className="text-4xl font-black italic tracking-tighter">Project Accounting</h2>
+          <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Resource allocation for {projectId}</p>
+        </div>
+        <div className="text-right">
+           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Collection Status</p>
+           <p className="text-4xl font-black italic text-blue-600">{Math.round((totalCollected/totalProjectValue)*100)}%</p>
         </div>
       </header>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border dark:border-gray-700 shadow-sm transition-all hover:shadow-xl">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Project Cost</p>
-          <p className="text-3xl font-black text-gray-900 dark:text-white">₹{totalCost.toLocaleString()}</p>
+      {/* Primary Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {[
+          { label: 'Total Project Value', val: totalProjectValue, color: 'text-gray-900', icon: Package },
+          { label: 'Amount Collected', val: totalCollected, color: 'text-green-600', icon: Star },
+          { label: 'Client Balance', val: clientBalance, color: 'text-red-500', icon: AlertCircle },
+          { label: 'Registered Vendors', val: vendors.length, color: 'text-blue-600', icon: Star, raw: true },
+          { label: 'Paid to Vendors', val: totalPaidToVendors, color: 'text-yellow-600', icon: AlertCircle }
+        ].map((m, i) => (
+          <div key={i} className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border dark:border-gray-800 shadow-sm">
+             <div className="flex justify-between items-start mb-6">
+                <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{m.label}</p>
+                <div className={`w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center ${m.color}`}>
+                  <m.icon className="w-4 h-4" />
+                </div>
+             </div>
+             <p className={`text-2xl font-black italic ${m.color} dark:text-white`}>
+               {m.raw ? m.val : `₹${m.val.toLocaleString()}`}
+             </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        {/* Analytics Section */}
+        <div className="lg:col-span-2 bg-white dark:bg-gray-950 p-10 rounded-[3rem] border dark:border-gray-800 shadow-sm">
+          <div className="flex justify-between items-center mb-10">
+            <h3 className="text-xl font-black italic tracking-tight uppercase">Cumulative Collections</h3>
+            <div className="flex gap-4">
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-blue-600" />
+                 <span className="text-[9px] font-bold uppercase text-gray-400">Total Inflow</span>
+               </div>
+            </div>
+          </div>
+          <div className="h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={timechartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorAcc" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  tickFormatter={(val) => `₹${(val / 1000)}k`}
+                />
+                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', background: darkMode ? '#111827' : '#fff' }} />
+                <Area type="monotone" dataKey="cumulative" stroke="#2563eb" fillOpacity={1} fill="url(#colorAcc)" strokeWidth={4} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border dark:border-gray-700 shadow-sm transition-all hover:shadow-xl">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Settled Payments</p>
-          <p className="text-3xl font-black text-green-600">₹{totalPaid.toLocaleString()}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border dark:border-gray-700 shadow-sm transition-all hover:shadow-xl">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Outstanding Dues</p>
-          <p className="text-3xl font-black text-red-500">₹{pendingAmount.toLocaleString()}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border dark:border-gray-700 shadow-sm transition-all hover:shadow-xl">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Active Entities</p>
-          <p className="text-3xl font-black text-blue-600">{vendors.length} Vendors</p>
+
+        {/* Breakdown Card */}
+        <div className="bg-white dark:bg-gray-950 p-10 rounded-[3rem] border dark:border-gray-800 shadow-sm flex flex-col">
+          <h3 className="text-xl font-black italic tracking-tight uppercase mb-8">Area-wise Budget</h3>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={8} dataKey="value">
+                  {pieData.map((e, i) => ( <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} /> ))}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', background: darkMode ? '#111827' : '#fff' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="space-y-4 mt-8">
+             {pieData.slice(0, 4).map((p, i) => (
+                <div key={i} className="flex justify-between items-center">
+                   <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                      <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">{p.name}</span>
+                   </div>
+                   <span className="text-xs font-bold italic">₹{p.value.toLocaleString()}</span>
+                </div>
+             ))}
+          </div>
         </div>
       </div>
 
-      {/* Overview Section */}
-      <div className="space-y-6">
-        <SectionHeader id="overview" title="Financial Overview" icon={LayoutDashboard} />
-        <AnimatePresence>
-          {expandedSections.overview && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-4">
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border dark:border-gray-700 shadow-sm">
-                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">Section-wise Burn Rate</h4>
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', background: darkMode ? '#111827' : '#fff' }}
-                        />
-                        <Legend verticalAlign="bottom" height={36}/>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+      <div className="flex flex-col gap-8 pb-20">
+        {/* Client Payments Section */}
+        <div className="bg-white dark:bg-gray-950 rounded-[3rem] border dark:border-gray-800 shadow-sm overflow-hidden flex flex-col">
+           <div className="p-10 border-b dark:border-gray-800 flex justify-between items-center">
+             <h3 className="text-xl font-black italic tracking-tight uppercase">Client Payment History</h3>
+             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl border dark:border-gray-800">Primary Ledger</span>
+           </div>
+           <div className="overflow-x-auto p-2 scrollbar-hide flex-1">
+             <table className="w-full text-left">
+               <thead>
+                 <tr className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b dark:border-gray-800">
+                   <th className="px-8 py-6">Payment Phase</th>
+                   <th className="px-6 py-6">Date</th>
+                   <th className="px-6 py-6 text-right">Amount</th>
+                   <th className="px-8 py-6 text-right">Actions</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y dark:divide-gray-800">
+                 {payments.map((p) => (
+                   <tr key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-900/20 transition-all group">
+                     <td className="px-8 py-8">
+                       <span className="text-lg font-black italic text-gray-800 dark:text-gray-200">{p.tranche}</span>
+                     </td>
+                     <td className="px-6 py-8 text-xs font-bold text-gray-400">{p.date}</td>
+                     <td className="px-6 py-8 text-right">
+                       <span className="text-xl font-black italic text-blue-600">₹{p.amount.toLocaleString()}</span>
+                     </td>
+                     <td className="px-8 py-8 text-right">
+                       <div className="flex items-center justify-end gap-4">
+                         <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${
+                           p.status === 'received' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
+                         }`}>
+                           {p.status}
+                         </span>
+                         <button 
+                            onClick={() => setSelectedPayment(p)}
+                            className="p-2 text-gray-300 hover:text-blue-600 transition-all rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          >
+                           <Maximize2 className="w-4 h-4" />
+                         </button>
+                       </div>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+        </div>
 
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border dark:border-gray-700 shadow-sm">
-                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8">Inflow Pattern (Cumulative)</h4>
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={timechartData}>
-                        <defs>
-                          <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb33" />
-                        <XAxis dataKey="date" hide />
-                        <YAxis hide />
-                        <Tooltip 
-                          contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', background: darkMode ? '#111827' : '#fff' }}
-                        />
-                        <Area type="monotone" dataKey="cumulative" stroke="#2563eb" fillOpacity={1} fill="url(#colorCumulative)" strokeWidth={3} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Payments Section */}
-      <div className="space-y-6">
-        <SectionHeader id="payments" title="Revenue & Tranches" icon={FileText} />
-        <AnimatePresence>
-          {expandedSections.payments && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm pt-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        <th className="px-8 py-5">Tranche Details</th>
-                        <th className="px-6 py-5">Value</th>
-                        <th className="px-6 py-5">Date</th>
-                        <th className="px-8 py-5 text-right">Status</th>
+        {/* Vendor Payments Section */}
+        <div className="bg-white dark:bg-gray-950 rounded-[3rem] border dark:border-gray-800 shadow-sm overflow-hidden flex flex-col">
+           <div className="p-10 border-b dark:border-gray-800 flex justify-between items-center">
+             <h3 className="text-xl font-black italic tracking-tight uppercase">Vendor Settlement Logs</h3>
+             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-xl border dark:border-gray-800">Secondary Ledger</span>
+           </div>
+           <div className="overflow-x-auto p-2 scrollbar-hide flex-1">
+             <table className="w-full text-left">
+               <thead>
+                 <tr className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b dark:border-gray-800">
+                   <th className="px-8 py-6">Vendor Entity</th>
+                   <th className="px-6 py-6">Focus Area</th>
+                   <th className="px-6 py-6 text-right">Paid Volume</th>
+                   <th className="px-8 py-6 text-right">Actions</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y dark:divide-gray-800">
+                 {vendors.map((vendor) => {
+                    const vendorCosts = costs.filter(c => c.vendorId === vendor.id);
+                    const paid = vendorCosts.filter(c => c.status === 'Paid').reduce((s, c) => s + c.amount, 0);
+                    return (
+                      <tr key={vendor.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-all group">
+                        <td className="px-8 py-8">
+                          <span className="text-lg font-black italic text-gray-800 dark:text-gray-200">{vendor.name}</span>
+                        </td>
+                        <td className="px-6 py-8">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{vendor.type}</span>
+                        </td>
+                        <td className="px-6 py-8 text-right">
+                          <span className="text-xl font-black italic text-green-600">₹{paid.toLocaleString()}</span>
+                        </td>
+                        <td className="px-8 py-8 text-right">
+                           <div className="flex items-center justify-end gap-4">
+                             <span className="text-[10px] font-black italic text-gray-300 uppercase tracking-widest">Archive</span>
+                             <button 
+                                onClick={() => setSelectedVendor(vendor)}
+                                className="p-2 text-gray-300 hover:text-blue-600 transition-all rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              >
+                               <Maximize2 className="w-4 h-4" />
+                             </button>
+                           </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y dark:divide-gray-700">
-                      {payments.length > 0 ? payments.map((p) => (
-                        <tr key={p.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-700/30 transition-colors">
-                          <td className="px-8 py-5 font-bold">{p.tranche}</td>
-                          <td className="px-6 py-5 text-blue-600 font-mono font-black">₹{p.amount.toLocaleString()}</td>
-                          <td className="px-6 py-5 text-sm font-medium text-gray-500">{p.date}</td>
-                          <td className="px-8 py-5 text-right">
-                            <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                              p.status === 'received' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
-                            }`}>
-                              {p.status}
-                            </span>
-                          </td>
-                        </tr>
-                      )) : (
-                        <tr>
-                          <td colSpan={4} className="px-8 py-10 text-center text-gray-400 font-medium italic">No payments recorded for this project yet.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    );
+                 })}
+               </tbody>
+             </table>
+           </div>
+        </div>
       </div>
 
-      {/* Vendors Section */}
-      <div className="space-y-6">
-        <SectionHeader id="vendors" title="Vendor Ledger" icon={Star} />
-        <AnimatePresence>
-          {expandedSections.vendors && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm pt-4">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          <th className="px-8 py-5">Vendor Agent</th>
-                          <th className="px-6 py-5">Specification</th>
-                          <th className="px-6 py-5 text-center">Identity Rating</th>
-                          <th className="px-8 py-5 text-right">Cumulative Spend</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y dark:divide-gray-700">
-                        {vendors.length > 0 ? vendors.map((vendor) => (
-                          <tr key={vendor.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-700/30 transition-colors">
-                            <td className="px-8 py-6">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-black text-sm">
-                                  {vendor.name.charAt(0)}
-                                </div>
-                                <span className="font-extrabold text-gray-900 dark:text-gray-100">{vendor.name}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-6 text-sm font-medium text-gray-500">{vendor.type}</td>
-                            <td className="px-6 py-6 text-center">
-                              <div className="flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-orange-950/20 px-2 py-1 rounded-lg inline-flex">
-                                <Star className="w-3 h-3 text-orange-400 fill-current" />
-                                <span className="text-[11px] font-black text-orange-600">{vendor.rating}</span>
-                              </div>
-                            </td>
-                            <td className="px-8 py-6 text-right font-black text-lg text-gray-900 dark:text-gray-100">
-                              ₹{costs.filter(c => c.vendorId === vendor.id).reduce((s, c) => s + c.amount, 0).toLocaleString()}
-                            </td>
-                          </tr>
-                        )) : (
-                          <tr>
-                            <td colSpan={4} className="px-10 py-16 text-center text-gray-400 font-medium italic">No vendors associated with the current project session.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Procurement Section */}
-      <div className="space-y-6">
-        <SectionHeader id="procurement" title="Inventory & Procurement" icon={Package} />
-        <AnimatePresence>
-          {expandedSections.procurement && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-8 pt-4">
-                <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border dark:border-gray-700 overflow-hidden shadow-sm">
-                  <div className="p-10 border-b dark:border-gray-700 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Procurement Log</h4>
-                      <p className="text-lg font-black italic">Real-time Material Acquisition</p>
-                    </div>
-                    <button className="text-xs font-black text-blue-600 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-6 py-3 rounded-2xl hover:bg-blue-100 transition-colors">Generate Inventory Report</button>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-gray-50/50 dark:bg-gray-800/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          <th className="px-10 py-5 text-center w-20">#</th>
-                          <th className="px-10 py-5">Material Item</th>
-                          <th className="px-6 py-5">Target Supplier</th>
-                          <th className="px-6 py-5 text-center">Payload Qty</th>
-                          <th className="px-10 py-5 text-right">Settlement Value</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y dark:divide-gray-800">
-                        {[
-                          { item: 'Cement (OPC)', supplier: 'BuildStrong Civil', qty: '500 Bags', value: 12500 },
-                          { item: 'Steel Rebars (12mm)', supplier: 'BuildStrong Civil', qty: '2.5 Tons', value: 18000 },
-                          { item: 'Conduit Pipes', supplier: 'Sparky Electricians', qty: '800 Units', value: 4200 },
-                          { item: 'Primary Emulsion', supplier: 'Perfect Finish Paints', qty: '20 Buckets', value: 3100 },
-                          { item: 'Plywood (19mm)', supplier: 'WoodWizard Carpentry', qty: '45 Sheets', value: 5000 },
-                        ].map((mat, i) => (
-                          <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                            <td className="px-10 py-6 text-center font-black text-gray-300 dark:text-gray-600">{i + 1}</td>
-                            <td className="px-10 py-6 font-extrabold">{mat.item}</td>
-                            <td className="px-6 py-6 text-sm font-medium text-gray-500">{mat.supplier}</td>
-                            <td className="px-6 py-6 text-center text-sm font-black text-gray-400">{mat.qty}</td>
-                            <td className="px-10 py-6 text-right font-black text-blue-600">₹{mat.value.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Analysis Section */}
-      <div className="space-y-6">
-        <SectionHeader id="analysis" title="Granular Cost Analysis" icon={AlertCircle} />
-        <AnimatePresence>
-          {expandedSections.analysis && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-10 pt-4">
-                <div className="bg-white dark:bg-gray-800 p-10 rounded-[2.5rem] border dark:border-gray-700 shadow-sm">
-                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-10">Expenditure Delta by Project Vertical</h4>
-                  <div className="h-[350px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={pieData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb33" />
-                        <XAxis dataKey="name" fontSize={10} fontWeight={900} tick={{ fill: '#9ca3af' }} axisLine={false} />
-                        <YAxis hide />
-                        <Tooltip 
-                          contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', background: darkMode ? '#111827' : '#fff' }}
-                        />
-                        <Bar dataKey="value" fill="#2563eb" radius={[12, 12, 0, 0]} barSize={40} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-[2.5rem] overflow-hidden shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                          <th className="px-10 py-6">Transaction Description</th>
-                          <th className="px-6 py-6">Vertical Section</th>
-                          <th className="px-10 py-6 text-right">Settled Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y dark:divide-gray-700">
-                        {costs.length > 0 ? costs.map((c) => (
-                          <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
-                            <td className="px-10 py-7">
-                              <p className="font-bold text-gray-800 dark:text-gray-200">{c.description}</p>
-                              <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mt-0.5">{c.date}</p>
-                            </td>
-                            <td className="px-6 py-7">
-                              <span className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-                                {c.section}
-                              </span>
-                            </td>
-                            <td className="px-10 py-7 text-right font-black text-lg text-blue-600 tracking-tight">₹{c.amount.toLocaleString()}</td>
-                          </tr>
-                        )) : (
-                          <tr>
-                            <td colSpan={3} className="px-10 py-16 text-center text-gray-400 font-medium italic border-dashed border-2 m-4 rounded-3xl">No cost analysis data currently logged for this session.</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <AnimatePresence>
+        {selectedVendor && (
+          <DetailModal 
+            title={selectedVendor.name}
+            data={costs.filter(c => c.vendorId === selectedVendor.id && c.status === 'Paid')}
+            onClose={() => setSelectedVendor(null)}
+          />
+        )}
+        {selectedPayment && (
+          <DetailModal 
+            title="Project Collections"
+            data={payments}
+            onClose={() => setSelectedPayment(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

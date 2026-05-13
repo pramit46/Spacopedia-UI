@@ -41,6 +41,11 @@ interface SettingsPageProps {
   setManpower: React.Dispatch<React.SetStateAction<ManpowerMaster[]>>;
   clients: ClientMaster[];
   setClients: React.Dispatch<React.SetStateAction<ClientMaster[]>>;
+  payments: any[];
+  setPayments: React.Dispatch<React.SetStateAction<any[]>>;
+  costs: any[];
+  setCosts: React.Dispatch<React.SetStateAction<any[]>>;
+  selectedProject: string;
   darkMode: boolean;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
   onClose: () => void;
@@ -58,6 +63,11 @@ export function SettingsPage({
   setManpower,
   clients,
   setClients,
+  payments,
+  setPayments,
+  costs,
+  setCosts,
+  selectedProject,
   darkMode, 
   setDarkMode, 
   onClose 
@@ -159,6 +169,12 @@ export function SettingsPage({
                   setManpower={setManpower}
                   clients={clients}
                   setClients={setClients}
+                  payments={payments}
+                  setPayments={setPayments}
+                  costs={costs}
+                  setCosts={setCosts}
+                  selectedProject={selectedProject}
+                  currentUser={currentUser}
                   canEdit={canEdit}
                 />
               )}

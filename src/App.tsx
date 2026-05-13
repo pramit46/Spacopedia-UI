@@ -48,11 +48,13 @@ import { QuotationView } from './components/QuotationView';
 // --- Icon Mapping Helper for Tabs ---
 const ICON_MAP: Record<string, any> = {
   FileText,
-  ImageIcon: LayoutDashboard, // fallback or use ImageIcon from lucide if imported
+  ImageIcon: LayoutDashboard, 
   Package: LayoutDashboard, 
   GanttChartSquare: LayoutDashboard,
   CreditCard: LayoutDashboard,
   ShieldCheck: LayoutDashboard,
+  Database: LayoutDashboard,
+  List: LayoutDashboard,
   LayoutDashboard
 };
 
@@ -192,6 +194,11 @@ export default function App() {
         setManpower={setManpower}
         clients={clients}
         setClients={setClients}
+        payments={payments}
+        setPayments={setPayments}
+        costs={costs}
+        setCosts={setCosts}
+        selectedProject={selectedProject}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         onClose={() => setShowSettings(false)}
@@ -242,8 +249,8 @@ export default function App() {
       </nav>
 
       <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar visibility control - Commented out for Legal, Billing, and Design pages as requested */}
-        {!['legal', 'billing', 'design', 'accounts'].includes(activeTab) && (
+        {/* Sidebar visibility control - Commented out for full-width views */}
+        {!['legal', 'billing', 'design', 'accounts', 'quotation'].includes(activeTab) && (
           <Sidebar 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -266,7 +273,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="max-w-6xl mx-auto"
+              className={`${activeTab === 'quotation' ? 'w-full' : 'max-w-6xl mx-auto'}`}
             >
               {activeTab === 'design' && (
                 <DesignView 

@@ -133,6 +133,14 @@ export function VendorManagement({ vendors, setVendors, canEdit }: VendorManagem
                     Contact <SortIcon column="contactNumber" />
                   </div>
                 </th>
+                <th 
+                  onClick={() => requestSort('gstNumber')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center cursor-pointer group"
+                >
+                  <div className="flex items-center justify-center">
+                    GST Number <SortIcon column="gstNumber" />
+                  </div>
+                </th>
                 {canEdit && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>}
               </tr>
             </thead>
@@ -154,6 +162,11 @@ export function VendorManagement({ vendors, setVendors, canEdit }: VendorManagem
                   </td>
                   <td className="px-6 py-4 text-center">
                     <p className="text-sm font-mono">{v.contactNumber}</p>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <p className="text-[11px] font-black font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded inline-block">
+                      {v.gstNumber}
+                    </p>
                   </td>
                   {canEdit && (
                     <td className="px-6 py-4 text-right">
@@ -222,9 +235,15 @@ export function VendorManagement({ vendors, setVendors, canEdit }: VendorManagem
                      <input name="state" defaultValue={editingItem?.state} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
-                <div className="space-y-1">
-                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contact Number</label>
-                   <input name="contactNumber" defaultValue={editingItem?.contactNumber} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contact Number</label>
+                     <input name="contactNumber" defaultValue={editingItem?.contactNumber} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">GST Number</label>
+                     <input name="gstNumber" defaultValue={editingItem?.gstNumber} placeholder="e.g. 29AAAAA0000A1Z5" className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500 uppercase" />
+                  </div>
                 </div>
 
                 <div className="pt-6 flex gap-4">
