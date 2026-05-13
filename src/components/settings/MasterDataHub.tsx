@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Vendor, ManpowerMaster, ClientMaster } from '../../mockData';
+import { Vendor, ManpowerMaster, ClientMaster, User, ProjectPayment, ProjectCostItem } from '../../mockData';
 import { VendorManagement } from './VendorManagement';
 import { ClientManagement } from './ClientManagement';
 import { ManpowerManagement } from './ManpowerManagement';
 import PriceMasterData from './PriceMasterData';
-import { Building2, User, HardHat, Tag } from 'lucide-react';
+import { ClientPaymentsView } from './ClientPaymentsView';
+import { VendorSettlementsView } from './VendorSettlementsView';
+import { Building2, User as UserIcon, HardHat, Tag, Database, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface MasterDataHubProps {
@@ -14,6 +16,12 @@ interface MasterDataHubProps {
   setManpower: React.Dispatch<React.SetStateAction<ManpowerMaster[]>>;
   clients: ClientMaster[];
   setClients: React.Dispatch<React.SetStateAction<ClientMaster[]>>;
+  payments: ProjectPayment[];
+  setPayments: React.Dispatch<React.SetStateAction<ProjectPayment[]>>;
+  costs: ProjectCostItem[];
+  setCosts: React.Dispatch<React.SetStateAction<ProjectCostItem[]>>;
+  currentUser: User;
+  selectedProject: string;
   canEdit: boolean;
 }
 
@@ -24,15 +32,23 @@ export function MasterDataHub({
   setManpower,
   clients,
   setClients,
+  payments,
+  setPayments,
+  costs,
+  setCosts,
+  currentUser,
+  selectedProject,
   canEdit
 }: MasterDataHubProps) {
-  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing' | 'client-payments' | 'vendor-settlements'>('clients');
 
   const tabs = [
-    { id: 'clients', label: 'Clients', icon: User },
+    { id: 'clients', label: 'Clients', icon: UserIcon },
     { id: 'vendors', label: 'Vendors', icon: Building2 },
     { id: 'manpower', label: 'Manpower', icon: HardHat },
     { id: 'pricing', label: 'Pricing', icon: Tag },
+    { id: 'client-payments', label: 'Client Payments', icon: Database },
+    { id: 'vendor-settlements', label: 'Vendor Settlements', icon: List },
   ];
 
   return (
@@ -42,12 +58,12 @@ export function MasterDataHub({
         <p className="text-gray-500 dark:text-gray-400 font-medium">Centralized control for system-wide entities and resource parameters.</p>
       </header>
 
-      <div className="flex flex-wrap gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl w-fit">
+      <div className="flex flex-nowrap gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-x-auto max-w-full scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${
               activeTab === tab.id 
                 ? 'bg-white dark:bg-gray-900 text-blue-600 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
@@ -79,6 +95,25 @@ export function MasterDataHub({
             )}
             {activeTab === 'pricing' && (
               <PriceMasterData />
+            )}
+            {activeTab === 'client-payments' && (
+              <ClientPaymentsView 
+                currentUser={currentUser}
+                payments={payments}
+                onAdd={(p) => setPayments(prev => [...prev, p])}
+                onDelete={(id) => setPayments(prev => prev.filter(p => p.id !== id))}
+                projectId={selectedProject}
+              />
+            )}
+            {activeTab === 'vendor-settlements' && (
+              <VendorSettlementsView 
+                currentUser={currentUser}
+                costs={costs}
+                vendors={vendors}
+                onAdd={(c) => setCosts(prev => [...prev, c])}
+                onDelete={(id) => setCosts(prev => prev.filter(c => c.id !== id))}
+                projectId={selectedProject}
+              />
             )}
           </motion.div>
         </AnimatePresence>
