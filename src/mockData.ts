@@ -68,6 +68,7 @@ export interface Expense {
   endLocation?: string;
   amount: number;
   fileName: string;
+  comment?: string;
   userId: string; // ID of the creator
 }
 
@@ -266,8 +267,9 @@ export const INITIAL_EXPENSES: Expense[] = [
     subMode: 'Taxi', 
     startLocation: 'Main Office', 
     endLocation: 'Project Site A', 
-    amount: 45.50, 
+    amount: 445.50, 
     fileName: 'bill_taxi.pdf',
+    comment: 'Travel for weekly site inspection and material verification.',
     userId: 'u4'
   },
   { 
@@ -277,8 +279,9 @@ export const INITIAL_EXPENSES: Expense[] = [
     timestamp: '2024-07-15 13:00', 
     mode: 'Meals', 
     subMode: 'Lunch with Client', 
-    amount: 112.00, 
+    amount: 1112.00, 
     fileName: 'bill_lunch.jpg',
+    comment: 'Client meeting regarding final design approval for living room.',
     userId: 'u4'
   },
 ];

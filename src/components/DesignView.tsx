@@ -10,56 +10,55 @@ interface DesignViewProps {
 
 export function DesignView({ currentUser, items, onDelete }: DesignViewProps) {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col font-sans bg-white dark:bg-gray-950 min-h-screen">
+      <header className="py-8 border-b dark:border-gray-800 mb-10 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-black mb-2">Design Versions</h2>
-          <p className="text-gray-500 dark:text-gray-400">Manage and view 2D/3D design iterations for this project.</p>
+          <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest italic">
+            <span>Engineering</span>
+            <span className="text-gray-300">/</span>
+            <span>Iterative Prototypes</span>
+          </div>
+          <h2 className="text-4xl font-black italic tracking-tight">Design Iterations</h2>
+          <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">Centralized visualization repository.</p>
         </div>
         {(currentUser.role === 'designer' || currentUser.role === 'owner') && (
-          <button className="flex items-center gap-2 bg-gray-900 dark:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-800 dark:hover:bg-blue-700 transition-all shadow-lg active:scale-95">
+          <button className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all">
             <Upload className="w-4 h-4" />
-            Upload New Version
+            Upload Concept
           </button>
         )}
-      </div>
+      </header>
 
-      <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
+      <div className="border-t dark:border-gray-800">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/50 border-b dark:border-gray-700">
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Version</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Date Uploaded</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Modification Details</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">File</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Actions</th>
+              <tr className="bg-transparent text-[10px] font-black text-gray-400 uppercase tracking-widest border-b dark:border-gray-800">
+                <th className="pr-6 py-6">Timestamp</th>
+                <th className="px-6 py-6">Structural Notes</th>
+                <th className="px-6 py-6 font-black italic">Asset</th>
+                <th className="pl-8 py-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y dark:divide-gray-700">
+            <tbody className="divide-y dark:divide-gray-800">
               {items.map((v) => {
                 const canDelete = currentUser.role === 'owner' || v.userId === currentUser.id;
                 return (
-                  <tr key={v.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-black rounded-lg">
-                        {v.version}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">{v.date}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-md">{v.description}</td>
-                    <td className="px-6 py-4">
-                      <button className="flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium">
+                  <tr key={v.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors group">
+                    <td className="pr-6 py-8 text-sm font-bold text-gray-400">{v.date}</td>
+                    <td className="px-6 py-8 text-sm text-gray-600 dark:text-gray-400 max-w-md">{v.description}</td>
+                    <td className="px-6 py-8">
+                      <button className="flex items-center gap-2 text-blue-600 hover:underline text-[10px] font-black uppercase tracking-widest">
                         <FileText className="w-4 h-4" />
                         {v.fileName}
                       </button>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="pl-8 py-8 text-right">
                       {canDelete && (
                         <button 
                           onClick={() => onDelete(v.id)}
-                          title="Delete version"
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all md:opacity-0 group-hover:opacity-100"
+                          title="Purge"
+                          className="p-2 text-gray-300 hover:text-red-500 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
