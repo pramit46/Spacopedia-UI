@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
-import { Vendor, MaterialMaster, ManpowerMaster, ClientMaster } from '../../mockData';
+import { Vendor, ManpowerMaster, ClientMaster } from '../../mockData';
 import { VendorManagement } from './VendorManagement';
 import { ClientManagement } from './ClientManagement';
-import { MaterialManagement } from './MaterialManagement';
 import { ManpowerManagement } from './ManpowerManagement';
-import { Building2, User, Database, HardHat } from 'lucide-react';
+import PriceMasterData from './PriceMasterData';
+import { Building2, User, HardHat, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface MasterDataHubProps {
   vendors: Vendor[];
   setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-  materials: MaterialMaster[];
-  setMaterials: React.Dispatch<React.SetStateAction<MaterialMaster[]>>;
   manpower: ManpowerMaster[];
   setManpower: React.Dispatch<React.SetStateAction<ManpowerMaster[]>>;
   clients: ClientMaster[];
@@ -22,21 +20,19 @@ interface MasterDataHubProps {
 export function MasterDataHub({
   vendors,
   setVendors,
-  materials,
-  setMaterials,
   manpower,
   setManpower,
   clients,
   setClients,
   canEdit
 }: MasterDataHubProps) {
-  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'materials' | 'manpower'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing'>('clients');
 
   const tabs = [
     { id: 'clients', label: 'Clients', icon: User },
     { id: 'vendors', label: 'Vendors', icon: Building2 },
-    { id: 'materials', label: 'Materials', icon: Database },
     { id: 'manpower', label: 'Manpower', icon: HardHat },
+    { id: 'pricing', label: 'Pricing', icon: Tag },
   ];
 
   return (
@@ -78,11 +74,11 @@ export function MasterDataHub({
             {activeTab === 'vendors' && (
               <VendorManagement vendors={vendors} setVendors={setVendors} canEdit={canEdit} />
             )}
-            {activeTab === 'materials' && (
-              <MaterialManagement materials={materials} setMaterials={setMaterials} canEdit={canEdit} />
-            )}
             {activeTab === 'manpower' && (
               <ManpowerManagement manpower={manpower} setManpower={setManpower} canEdit={canEdit} />
+            )}
+            {activeTab === 'pricing' && (
+              <PriceMasterData />
             )}
           </motion.div>
         </AnimatePresence>

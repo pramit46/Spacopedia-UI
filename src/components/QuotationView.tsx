@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Calculator, Download, Plus, FileSpreadsheet, Send } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { User } from '../mockData';
+import { FurnitureBuilder } from './FurnitureBuilder';
 
 interface QuotationViewProps {
   currentUser: User;
@@ -9,26 +10,45 @@ interface QuotationViewProps {
 }
 
 export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
-  const quotations = [
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [quotations, setQuotations] = useState([
     { id: 'Q-001', name: 'Initial Civil Works Estimate', amount: 850000, date: '2024-01-05', status: 'Approved' },
     { id: 'Q-002', name: 'Interior Design & Carpentry Package', amount: 1250000, date: '2024-02-15', status: 'Contracted' },
     { id: 'Q-003', name: 'Electrical & Automation Add-on', amount: 350000, date: '2024-03-10', status: 'Approved' },
     { id: 'Q-004', name: 'Landscape Design Proposal', amount: 225000, date: '2024-05-02', status: 'Draft' },
-  ];
+  ]);
 
   const totalValue = quotations.reduce((acc, q) => acc + q.amount, 0);
 
+  const handleCreateQuote = (item: any) => {
+    const newId = `Q-BUILD-${Math.floor(Math.random() * 1000)}`;
+    setQuotations(prev => [{ ...item, id: newId }, ...prev]);
+    setShowBuilder(false);
+  };
+
   return (
     <div className="space-y-10">
+      <AnimatePresence>
+        {showBuilder && (
+          <FurnitureBuilder 
+            onClose={() => setShowBuilder(false)}
+            onSave={handleCreateQuote}
+          />
+        )}
+      </AnimatePresence>
+
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-4xl font-black italic mb-2 tracking-tight">Project Quotations</h2>
           <p className="text-gray-500 dark:text-gray-400 font-medium">Financial blueprints and scope costings for client approval cycles.</p>
         </div>
         {(currentUser.role === 'owner' || currentUser.role === 'sales') && (
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl">
+          <button 
+            onClick={() => setShowBuilder(true)}
+            className="flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
+          >
             <Plus className="w-5 h-5" />
-            Create Revised Quote
+            Interactive Item Builder
           </button>
         )}
       </header>

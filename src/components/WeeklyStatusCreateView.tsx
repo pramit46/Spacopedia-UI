@@ -36,12 +36,25 @@ export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel }: WeeklyS
       setNotifying(false);
       setIsProcessed(false);
       
-      const [yearStr, weekNum] = week.split('-W');
+      const [yearStr, weekNumStr] = week.split('-W');
       const year = parseInt(yearStr);
+      const weekNum = parseInt(weekNumStr);
+      
+      // Calculate the dates for the week (starting on Sunday)
+      // Get the first day of the year
+      const firstDayOfYear = new Date(year, 0, 1);
+      const daysToSunday = firstDayOfYear.getDay(); // 0 is Sunday
+      
+      // Calculate the start of the week (Sunday)
+      const startDate = new Date(year, 0, 1 + (weekNum - 1) * 7 - daysToSunday);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+
       onAdd({
         id: Math.random().toString(36).substr(2, 9),
-        week: `Week ${weekNum}, ${year}`,
-        month: new Date().toLocaleString('default', { month: 'long' }),
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        month: startDate.toLocaleString('default', { month: 'long' }),
         year: year,
         date: new Date().toLocaleDateString(),
         photos: [

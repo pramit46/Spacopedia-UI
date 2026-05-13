@@ -120,16 +120,6 @@ export interface ClientMaster {
   email: string;
 }
 
-export interface MaterialMaster {
-  id: string;
-  name: string;
-  unit: string;
-  rate: number;
-  category: string;
-  state: string;
-  city: string;
-}
-
 export interface ManpowerMaster {
   id: string;
   type: string;
@@ -224,7 +214,8 @@ export interface WeeklyStatus {
   id: string;
   month: string;
   year: number;
-  week: string;
+  startDate: string;
+  endDate: string;
   photos: string[];
   date: string;
   userId: string; // ID of the creator
@@ -242,14 +233,6 @@ export const USERS: User[] = [
   { id: 'u5', name: 'David Sales', role: 'sales' },
   { id: 'u6', name: 'Eve Designer', role: 'designer' },
   { id: 'u7', name: 'Frank Legal', role: 'legal' },
-];
-
-export const INITIAL_MATERIALS: MaterialMaster[] = [
-  { id: 'm1', name: 'Cement', unit: 'Bag', rate: 450, category: 'Civil', state: 'Maharashtra', city: 'Mumbai' },
-  { id: 'm2', name: 'TMT Steel', unit: 'Kg', rate: 75, category: 'Civil', state: 'Delhi', city: 'New Delhi' },
-  { id: 'm3', name: 'Sand', unit: 'CFT', rate: 65, category: 'Civil', state: 'Karnataka', city: 'Bangalore' },
-  { id: 'm4', name: 'Brick', unit: 'Pcs', rate: 12, category: 'Civil', state: 'West Bengal', city: 'Kolkata' },
-  { id: 'm5', name: 'Paint (Apex)', unit: 'Litre', rate: 320, category: 'Painting', state: 'Tamil Nadu', city: 'Chennai' },
 ];
 
 export const INITIAL_MANPOWER: ManpowerMaster[] = [
@@ -300,12 +283,109 @@ export const INITIAL_EXPENSES: Expense[] = [
   },
 ];
 
+export interface FurnitureTemplate {
+  id: string;
+  name: string;
+  defaultWidth: number;
+  defaultHeight: number;
+  category: 'Storage' | 'Bed' | 'Surface' | 'Opening';
+  rules: {
+    plywoodFactor: number;
+    knobFactor: number;
+    shutterFactor: number;
+  };
+}
+
+export interface ComponentPrice {
+  id: string;
+  name: string;
+  unit: string;
+  rate: number;
+  type: 'Civil' | 'Woodwork' | 'Electrical' | 'Plumbing' | 'Hardware' | 'Other';
+  state: string;
+  city: string;
+}
+
+export const FURNITURE_TEMPLATES: FurnitureTemplate[] = [
+  { 
+    id: 't1', 
+    name: 'Wardrobe', 
+    defaultWidth: 5, 
+    defaultHeight: 7, 
+    category: 'Storage',
+    rules: { plywoodFactor: 3.5, knobFactor: 0.1, shutterFactor: 0.05 }
+  },
+  { 
+    id: 't2', 
+    name: 'Bed (Queen)', 
+    defaultWidth: 5, 
+    defaultHeight: 6.5, 
+    category: 'Bed',
+    rules: { plywoodFactor: 4.5, knobFactor: 0, shutterFactor: 0 }
+  },
+  { 
+    id: 't3', 
+    name: 'Door', 
+    defaultWidth: 3, 
+    defaultHeight: 7, 
+    category: 'Opening',
+    rules: { plywoodFactor: 1.1, knobFactor: 0, shutterFactor: 1 }
+  },
+  { 
+    id: 't4', 
+    name: 'Dressing Table', 
+    defaultWidth: 2.5, 
+    defaultHeight: 6, 
+    category: 'Surface',
+    rules: { plywoodFactor: 2.5, knobFactor: 0.2, shutterFactor: 0.1 }
+  },
+  { 
+    id: 't5', 
+    name: 'Bookshelf', 
+    defaultWidth: 3, 
+    defaultHeight: 6.5, 
+    category: 'Storage',
+    rules: { plywoodFactor: 4.2, knobFactor: 0, shutterFactor: 0 }
+  },
+  { 
+    id: 't6', 
+    name: 'Wall Panel', 
+    defaultWidth: 8, 
+    defaultHeight: 9, 
+    category: 'Surface',
+    rules: { plywoodFactor: 1.2, knobFactor: 0, shutterFactor: 0 }
+  },
+  { 
+    id: 't7', 
+    name: 'Study Table', 
+    defaultWidth: 4, 
+    defaultHeight: 2.5, 
+    category: 'Surface',
+    rules: { plywoodFactor: 2.8, knobFactor: 0.1, shutterFactor: 0.2 }
+  }
+];
+
+export const COMPONENT_PRICES: ComponentPrice[] = [
+  { id: 'cp1', name: 'Commercial Plywood (18mm)', unit: 'Sqft', rate: 110, type: 'Woodwork', state: 'Maharashtra', city: 'Mumbai' },
+  { id: 'cp2', name: 'Gurjan Plywood (18mm)', unit: 'Sqft', rate: 185, type: 'Woodwork', state: 'Maharashtra', city: 'Mumbai' },
+  { id: 'cp3', name: 'Design Knobs (Brass)', unit: 'Pcs', rate: 150, type: 'Hardware', state: 'Delhi', city: 'New Delhi' },
+  { id: 'cp4', name: 'Wooden Shutter', unit: 'Sqft', rate: 450, type: 'Woodwork', state: 'Gujarat', city: 'Surat' },
+  { id: 'cp5', name: 'Glass Shutter (Tinted)', unit: 'Sqft', rate: 850, type: 'Woodwork', state: 'Gujarat', city: 'Surat' },
+  { id: 'cp6', name: 'Hinges (Soft Close)', unit: 'Pair', rate: 450, type: 'Hardware', state: 'Delhi', city: 'New Delhi' },
+  { id: 'm1', name: 'Cement', unit: 'Bag', rate: 450, type: 'Civil', state: 'Maharashtra', city: 'Mumbai' },
+  { id: 'm2', name: 'TMT Steel', unit: 'Kg', rate: 75, type: 'Civil', state: 'Delhi', city: 'New Delhi' },
+  { id: 'm3', name: 'Sand', unit: 'CFT', rate: 65, type: 'Civil', state: 'Karnataka', city: 'Bangalore' },
+  { id: 'm4', name: 'Brick', unit: 'Pcs', rate: 12, type: 'Civil', state: 'West Bengal', city: 'Kolkata' },
+  { id: 'm5', name: 'Paint (Apex)', unit: 'Litre', rate: 320, type: 'Other', state: 'Tamil Nadu', city: 'Chennai' },
+];
+
 export const INITIAL_WEEKLY_STATUS: WeeklyStatus[] = [
   { 
     id: '1', 
     month: 'July', 
     year: 2024,
-    week: 'Week 2 (July 8 - July 14)', 
+    startDate: '2024-07-07',
+    endDate: '2024-07-13',
     date: '2024-07-14',
     userId: 'u4',
     photos: [
@@ -324,7 +404,8 @@ export const INITIAL_WEEKLY_STATUS: WeeklyStatus[] = [
     id: '2', 
     month: 'July', 
     year: 2024,
-    week: 'Week 1 (July 1 - July 7)', 
+    startDate: '2024-06-30',
+    endDate: '2024-07-06',
     date: '2024-07-07',
     userId: 'u4',
     photos: [

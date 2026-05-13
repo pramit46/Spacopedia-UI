@@ -10,7 +10,8 @@ import {
   Database,
   User as UserIcon, 
   Shield,
-  Building2
+  Building2,
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -18,7 +19,6 @@ import {
   Role, 
   RolePermission, 
   Vendor,
-  MaterialMaster,
   ManpowerMaster,
   ClientMaster,
   INITIAL_ROLES
@@ -37,8 +37,6 @@ interface SettingsPageProps {
   setRolePermissions: React.Dispatch<React.SetStateAction<RolePermission[]>>;
   vendors: Vendor[];
   setVendors: React.Dispatch<React.SetStateAction<Vendor[]>>;
-  materials: MaterialMaster[];
-  setMaterials: React.Dispatch<React.SetStateAction<MaterialMaster[]>>;
   manpower: ManpowerMaster[];
   setManpower: React.Dispatch<React.SetStateAction<ManpowerMaster[]>>;
   clients: ClientMaster[];
@@ -56,8 +54,6 @@ export function SettingsPage({
   setRolePermissions, 
   vendors,
   setVendors,
-  materials,
-  setMaterials,
   manpower,
   setManpower,
   clients,
@@ -159,8 +155,6 @@ export function SettingsPage({
                 <MasterDataHub 
                   vendors={vendors}
                   setVendors={setVendors}
-                  materials={materials}
-                  setMaterials={setMaterials}
                   manpower={manpower}
                   setManpower={setManpower}
                   clients={clients}

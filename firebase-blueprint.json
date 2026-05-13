@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A single feedback message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "starred": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "userName", "text", "timestamp", "starred"]
+    },
+    "WeeklyStatus": {
+      "title": "WeeklyStatus",
+      "description": "Weekly progress report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "month": { "type": "string" },
+        "year": { "type": "number" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "photos": { "type": "array" },
+        "date": { "type": "string" },
+        "userId": { "type": "string" },
+        "progressText": { "type": "string" },
+        "auditMaterial": { "type": "string" },
+        "auditSafety": { "type": "string" },
+        "comments": { "type": "array" }
+      },
+      "required": ["id", "month", "year", "startDate", "endDate", "photos", "date", "userId"]
+    }
+  },
+  "firestore": {
+    "weekly-statuses": {
+      "schema": "WeeklyStatus",
+      "description": "Collection of weekly progress reports"
+    }
+  }
+}
