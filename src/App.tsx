@@ -14,7 +14,6 @@ import {
   ProjectPayment,
   ProjectCostItem,
   Vendor,
-  MaterialMaster,
   ManpowerMaster,
   USERS, 
   PROJECTS, 
@@ -24,7 +23,6 @@ import {
   INITIAL_PAYMENTS,
   INITIAL_COSTS,
   VENDORS,
-  INITIAL_MATERIALS,
   INITIAL_MANPOWER,
   AVAILABLE_TABS,
   INITIAL_ROLE_PERMISSIONS,
@@ -72,7 +70,6 @@ export default function App() {
   const [payments, setPayments] = useState<ProjectPayment[]>(INITIAL_PAYMENTS);
   const [costs, setCosts] = useState<ProjectCostItem[]>(INITIAL_COSTS);
   const [vendors, setVendors] = useState<Vendor[]>(VENDORS);
-  const [materials, setMaterials] = useState<MaterialMaster[]>(INITIAL_MATERIALS);
   const [manpower, setManpower] = useState<ManpowerMaster[]>(INITIAL_MANPOWER);
   const [clients, setClients] = useState<ClientMaster[]>(INITIAL_CLIENTS);
   const [users, setUsers] = useState<User[]>(USERS);
@@ -110,10 +107,54 @@ export default function App() {
     }
   }, [darkMode]);
 
-  const handleUpdateWeeklyStatusComments = (logId: string, comments: ChatMessage[]) => {
+  const handleUpdateWeeklyStatusComments = async (logId: string, comments: ChatMessage[]) => {
+    // Update local state for immediate feedback
     setWeeklyStatusLogs(prev => prev.map(log => 
       log.id === logId ? { ...log, comments } : log
     ));
+
+    // Prepare API: Sync with server for persistence/realtime
+    try {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logId, comments })
+      });
+    } catch (error) {
+      console.error('Failed to sync messages with API:', error);
+    }
+  };
+
+  const handleUpdateProgressText = async (id: string, text: string) => {
+    setWeeklyStatusLogs(prev => prev.map(log => 
+      log.id === id ? { ...log, progressText: text } : log
+    ));
+
+    try {
+      await fetch('/api/weekly-status/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, text })
+      });
+    } catch (error) {
+      console.error('Failed to sync progress with API:', error);
+    }
+  };
+
+  const handleAddWeeklyStatus = async (log: WeeklyStatus) => {
+    setWeeklyStatusLogs(prev => [...prev, log]);
+    setIsCreatingStatus(false);
+    setSelectedWeekId(log.id);
+
+    try {
+      await fetch('/api/weekly-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(log)
+      });
+    } catch (error) {
+      console.error('Failed to post new weekly status to API:', error);
+    }
   };
 
   const handleImpersonationChange = (userId: string) => {
@@ -147,8 +188,6 @@ export default function App() {
         setRolePermissions={setRolePermissions}
         vendors={vendors}
         setVendors={setVendors}
-        materials={materials}
-        setMaterials={setMaterials}
         manpower={manpower}
         setManpower={setManpower}
         clients={clients}
@@ -248,11 +287,7 @@ export default function App() {
                 isCreatingStatus ? (
                   <WeeklyStatusCreateView 
                     currentUser={currentUser} 
-                    onAdd={(log) => {
-                      setWeeklyStatusLogs(prev => [...prev, log]);
-                      setIsCreatingStatus(false);
-                      setSelectedWeekId(log.id);
-                    }}
+                    onAdd={handleAddWeeklyStatus}
                     onCancel={() => setIsCreatingStatus(false)}
                   />
                 ) : (
@@ -260,16 +295,9 @@ export default function App() {
                     currentUser={currentUser} 
                     items={weeklyStatusLogs} 
                     selectedId={selectedWeekId}
-                    onDelete={(id) => {
-                      setWeeklyStatusLogs(prev => prev.filter(s => s.id !== id));
-                      if (selectedWeekId === id) setSelectedWeekId(null);
-                    }}
+                    onDelete={() => {}} // Deletion removed to enforce immutability
                     onUpdateComments={handleUpdateWeeklyStatusComments}
-                    onUpdateProgressText={(id, text) => {
-                      setWeeklyStatusLogs(prev => prev.map(log => 
-                        log.id === id ? { ...log, progressText: text } : log
-                      ));
-                    }}
+                    onUpdateProgressText={handleUpdateProgressText}
                   />
                 )
               )}

@@ -114,7 +114,15 @@ export function VendorManagement({ vendors, setVendors, canEdit }: VendorManagem
                   className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
                 >
                   <div className="flex items-center">
-                    Type & Location <SortIcon column="type" />
+                    Type <SortIcon column="type" />
+                  </div>
+                </th>
+                <th 
+                  onClick={() => requestSort('city')}
+                  className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer group"
+                >
+                  <div className="flex items-center">
+                    Location <SortIcon column="city" />
                   </div>
                 </th>
                 <th 
@@ -137,7 +145,12 @@ export function VendorManagement({ vendors, setVendors, canEdit }: VendorManagem
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm font-medium">{v.type}</p>
-                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">{v.city}, {v.state}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-sm font-bold">{v.city}</p>
+                      <p className="text-[10px] font-medium text-gray-400 capitalize leading-none mt-0.5">{v.state}</p>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <p className="text-sm font-mono">{v.contactNumber}</p>

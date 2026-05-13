@@ -93,7 +93,9 @@ export function WeeklyStatusView({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-2 px-1">Phase Verification Log</div>
-          <h2 className="text-4xl font-black tracking-tight">{selectedLog.week}</h2>
+          <h2 className="text-4xl font-black tracking-tight">
+            {new Date(selectedLog.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(selectedLog.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+          </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Logged on {selectedLog.date} by System Node</p>
         </div>
         <div className="flex items-center gap-4">
@@ -108,15 +110,6 @@ export function WeeklyStatusView({
             <MessageSquare className="w-5 h-5" />
             {selectedLog.comments?.length || 0} Discussions
           </button>
-          {canManage && (
-            <button 
-              onClick={() => onDelete(selectedLog.id)}
-              className="p-3.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all border border-transparent hover:border-red-100"
-              title="Delete this update"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -249,7 +242,9 @@ export function WeeklyStatusView({
               <div className="px-10 py-8 border-b dark:border-gray-800 flex items-center justify-between bg-blue-50/50 dark:bg-blue-900/10">
                 <div>
                   <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">Feedback Thread</div>
-                  <h3 className="text-2xl font-black">{activeLogForChat.week}</h3>
+                  <h3 className="text-2xl font-black">
+                    {new Date(activeLogForChat.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(activeLogForChat.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </h3>
                 </div>
                 <button 
                   onClick={() => setActiveCommentLogId(null)}

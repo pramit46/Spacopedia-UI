@@ -47,6 +47,8 @@ export function RoleManagement({
 }: RoleManagementProps) {
   const [isAddingRole, setIsAddingRole] = useState(false);
   const [showJson, setShowJson] = useState(false);
+  const [confirmDeleteRole, setConfirmDeleteRole] = useState<Role | null>(null);
+  const [isDoubleConfirming, setIsDoubleConfirming] = useState(false);
   const [lastGeneratedJson, setLastGeneratedJson] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: 'role'; direction: 'asc' | 'desc' } | null>({ key: 'role', direction: 'asc' });
 
@@ -125,6 +127,35 @@ export function RoleManagement({
     generateBackendPayload(newPermissions);
   };
 
+  const handleDeleteRole = (role: Role) => {
+    if (!canEdit) return;
+    if (role === 'owner') {
+      alert("System Integrity: Root Owner role cannot be deleted.");
+      return;
+    }
+    setConfirmDeleteRole(role);
+    setIsDoubleConfirming(false);
+  };
+
+  const confirmDeletion = () => {
+    if (!confirmDeleteRole) return;
+    
+    if (!isDoubleConfirming) {
+      setIsDoubleConfirming(true);
+      return;
+    }
+
+    const newRoles = availableRoles.filter(r => r !== confirmDeleteRole);
+    const newPermissions = rolePermissions.filter(rp => rp.role !== confirmDeleteRole);
+    
+    setAvailableRoles(newRoles);
+    setRolePermissions(newPermissions);
+    setConfirmDeleteRole(null);
+    setIsDoubleConfirming(false);
+    
+    generateBackendPayload(newPermissions);
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex items-center justify-between">
@@ -133,13 +164,13 @@ export function RoleManagement({
           <p className="text-gray-500 dark:text-gray-400 font-medium">Define module access for system roles. Changes are captured as backend-ready schema updates.</p>
         </div>
         <div className="flex gap-4">
-          <button 
+          {/* <button 
             onClick={() => setShowJson(!showJson)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
           >
             <Code className="w-4 h-4" />
             {showJson ? 'Hide Sync Log' : 'View Sync Log'}
-          </button>
+          </button> */}
           {canEdit && (
             <button 
               onClick={() => setIsAddingRole(true)}
@@ -236,9 +267,20 @@ export function RoleManagement({
               {sortedRolePermissions.map(rp => (
                 <tr key={rp.role} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-8 py-5 font-bold text-gray-700 dark:text-gray-300 border-r dark:border-gray-800">
-                    <div className="flex items-center gap-2 capitalize text-sm">
-                      {rp.role === 'owner' && <Shield className="w-3.5 h-3.5 text-blue-500" />}
-                      {rp.role}
+                    <div className="flex items-center justify-between gap-2 capitalize text-sm group">
+                      <div className="flex items-center gap-2">
+                        {rp.role === 'owner' && <Shield className="w-3.5 h-3.5 text-blue-500" />}
+                        {rp.role}
+                      </div>
+                      {canEdit && rp.role !== 'owner' && (
+                        <button 
+                          onClick={() => handleDeleteRole(rp.role)}
+                          className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-lg transition-all"
+                          title="Delete Role"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
                   {AVAILABLE_TABS.map(tab => {
@@ -278,6 +320,53 @@ export function RoleManagement({
           </div>
         </div>
       )}
+
+      {/* Custom Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDeleteRole && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-950 rounded-[2.5rem] border dark:border-gray-800 shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-10 h-10" />
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-black italic mb-2">
+                    {isDoubleConfirming ? 'Critical Security Update' : 'Revoke System Access'}
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    {isDoubleConfirming 
+                      ? `This action permanently modifies the backend security schema for the "${confirmDeleteRole}" node. This cannot be undone.`
+                      : `Are you sure you want to delete the "${confirmDeleteRole}" role? All assigned users will lose system access immediately.`
+                    }
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={confirmDeletion}
+                    className="w-full py-4 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg active:scale-95"
+                  >
+                    {isDoubleConfirming ? 'Authorize Backend Update' : 'Confirm Deletion'}
+                  </button>
+                  <button 
+                    onClick={() => setConfirmDeleteRole(null)}
+                    className="w-full py-4 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  >
+                    Cancel Action
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

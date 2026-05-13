@@ -31,6 +31,7 @@ export function UserManagement({
   canEdit 
 }: UserManagementProps) {
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [confirmDeleteUser, setConfirmDeleteUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'asc' | 'desc' } | null>({ key: 'name', direction: 'asc' });
 
@@ -187,11 +188,7 @@ export function UserManagement({
                   </select>
                   <button 
                     className="text-red-500 p-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors opacity-0 group-hover:opacity-100"
-                    onClick={() => {
-                       if(confirm(`Are you sure you want to de-provision ${user.name}?`)) {
-                         setUsers(prev => prev.filter(u => u.id !== user.id));
-                       }
-                    }}
+                    onClick={() => setConfirmDeleteUser(user)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -268,6 +265,52 @@ export function UserManagement({
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDeleteUser && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-950 rounded-[2.5rem] border dark:border-gray-800 shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-10 h-10" />
+                </div>
+                
+                <div>
+                  <h3 className="text-2xl font-black italic mb-2">De-provision User</h3>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">
+                    Are you sure you want to suspend system access for <span className="text-gray-900 dark:text-white font-bold">{confirmDeleteUser.name}</span>? 
+                    This identity node will be marked as inactive.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={() => {
+                      setUsers(prev => prev.filter(u => u.id !== confirmDeleteUser.id));
+                      setConfirmDeleteUser(null);
+                    }}
+                    className="w-full py-4 rounded-2xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg active:scale-95"
+                  >
+                    Remove Access
+                  </button>
+                  <button 
+                    onClick={() => setConfirmDeleteUser(null)}
+                    className="w-full py-4 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  >
+                    Keep User
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
