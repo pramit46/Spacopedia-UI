@@ -88,6 +88,8 @@ export interface ProjectPayment {
   date: string;
   tranche: string;
   status: 'received' | 'pending';
+  description?: string;
+  attachment?: string;
 }
 
 export interface ProjectCostItem {
@@ -98,6 +100,8 @@ export interface ProjectCostItem {
   date: string;
   description: string;
   vendorId: string;
+  status: 'Paid' | 'Pending';
+  attachment?: string;
 }
 
 export interface Vendor {
@@ -131,19 +135,19 @@ export interface ManpowerMaster {
 }
 
 export const INITIAL_PAYMENTS: ProjectPayment[] = [
-  { id: 'pay1', projectId: 'PROJ-2024-07-001', amount: 50000, date: '2024-01-10', tranche: 'Advance', status: 'received' },
-  { id: 'pay2', projectId: 'PROJ-2024-07-001', amount: 75000, date: '2024-03-20', tranche: 'Civil Completion', status: 'received' },
-  { id: 'pay3', projectId: 'PROJ-2024-07-001', amount: 45000, date: '2024-05-15', tranche: 'Design & Fabrication', status: 'received' },
-  { id: 'pay4', projectId: 'PROJ-2024-07-001', amount: 100000, date: '2024-07-01', tranche: 'Interim Payment', status: 'pending' },
+  { id: 'pay1', projectId: 'PROJ-2024-07-001', amount: 50000, date: '2024-01-10', tranche: 'Advance', status: 'received', description: 'Initial project kickoff advance', attachment: 'receipt_adv.pdf' },
+  { id: 'pay2', projectId: 'PROJ-2024-07-001', amount: 75000, date: '2024-03-20', tranche: 'Civil Completion', status: 'received', description: 'Payment for structural work completion', attachment: 'receipt_civil.pdf' },
+  { id: 'pay3', projectId: 'PROJ-2024-07-001', amount: 45000, date: '2024-05-15', tranche: 'Design & Fabrication', status: 'received', description: 'Design approval and material procurement', attachment: 'receipt_fab.pdf' },
+  { id: 'pay4', projectId: 'PROJ-2024-07-001', amount: 100000, date: '2024-07-01', tranche: 'Interim Payment', status: 'pending', description: 'Scheduled phase 2 interim payment' },
 ];
 
 export const INITIAL_COSTS: ProjectCostItem[] = [
-  { id: 'cost1', projectId: 'PROJ-2024-07-001', section: 'Civil', amount: 65000, date: '2024-02-15', description: 'Foundation work & Masonry', vendorId: 'v1' },
-  { id: 'cost2', projectId: 'PROJ-2024-07-001', section: 'Electrical', amount: 25000, date: '2024-03-10', description: 'Concealed wiring & Board installation', vendorId: 'v2' },
-  { id: 'cost3', projectId: 'PROJ-2024-07-001', section: 'Carpentry', amount: 120000, date: '2024-04-05', description: 'Modular kitchen & Wardrobe carcass', vendorId: 'v3' },
-  { id: 'cost4', projectId: 'PROJ-2024-07-001', section: 'Painting', amount: 18000, date: '2024-06-20', description: 'Wall putty & Primary coat', vendorId: 'v4' },
-  { id: 'cost5', projectId: 'PROJ-2024-07-001', section: 'Plumbing', amount: 12000, date: '2024-04-12', description: 'Pipe fittings', vendorId: 'v2' },
-  { id: 'cost6', projectId: 'PROJ-2024-07-001', section: 'Civil', amount: 15000, date: '2024-05-02', description: 'Tiling labor', vendorId: 'v1' },
+  { id: 'cost1', projectId: 'PROJ-2024-07-001', section: 'Civil', amount: 65000, date: '2024-02-15', description: 'Foundation work & Masonry', vendorId: 'v1', status: 'Paid', attachment: 'invoice_v1_01.pdf' },
+  { id: 'cost2', projectId: 'PROJ-2024-07-001', section: 'Electrical', amount: 25000, date: '2024-03-10', description: 'Concealed wiring & Board installation', vendorId: 'v2', status: 'Paid', attachment: 'invoice_v2_01.pdf' },
+  { id: 'cost3', projectId: 'PROJ-2024-07-001', section: 'Carpentry', amount: 120000, date: '2024-04-05', description: 'Modular kitchen & Wardrobe carcass', vendorId: 'v3', status: 'Pending' },
+  { id: 'cost4', projectId: 'PROJ-2024-07-001', section: 'Painting', amount: 18000, date: '2024-06-20', description: 'Wall putty & Primary coat', vendorId: 'v4', status: 'Paid', attachment: 'invoice_v4_01.pdf' },
+  { id: 'cost5', projectId: 'PROJ-2024-07-001', section: 'Plumbing', amount: 12000, date: '2024-04-12', description: 'Pipe fittings', vendorId: 'v2', status: 'Paid', attachment: 'invoice_v2_02.pdf' },
+  { id: 'cost6', projectId: 'PROJ-2024-07-001', section: 'Civil', amount: 15000, date: '2024-05-02', description: 'Tiling labor', vendorId: 'v1', status: 'Pending' },
 ];
 
 export const VENDORS: Vendor[] = [
