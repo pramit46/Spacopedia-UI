@@ -54,7 +54,7 @@ export function LegalView({ currentUser, projectId }: LegalViewProps) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b dark:border-gray-800 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                <th className="px-10 py-8">No.</th>
+                <th className="px-10 py-8">#</th>
                 <th className="px-6 py-8">Instrument Nomenclature</th>
                 <th className="px-6 py-8">Execution Timestamp</th>
                 <th className="px-6 py-8">Payload Size</th>
