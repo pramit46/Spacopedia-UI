@@ -31,6 +31,7 @@ interface QuotationItem {
   shutterType: 'wooden' | 'glass';
   total: number;
   image: string;
+  description?: string;
 }
 
 interface QuotationViewProps {
@@ -50,7 +51,8 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
       plyType: 'cp2', 
       shutterType: 'wooden', 
       total: 85400,
-      image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&auto=format&fit=crop&q=60'
+      image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&auto=format&fit=crop&q=60',
+      description: 'Standard built-in'
     },
     { 
       id: 'it-2', 
@@ -62,7 +64,8 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
       plyType: 'cp1', 
       shutterType: 'glass', 
       total: 32500,
-      image: 'https://images.unsplash.com/photo-1616486029423-aaa47a300ffe?w=800&auto=format&fit=crop&q=60'
+      image: 'https://images.unsplash.com/photo-1616486029423-aaa47a300ffe?w=800&auto=format&fit=crop&q=60',
+      description: 'Mirror finish'
     },
     { 
       id: 'it-3', 
@@ -74,12 +77,14 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
       plyType: 'cp2', 
       shutterType: 'wooden', 
       total: 45000,
-      image: 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=800&auto=format&fit=crop&q=60'
+      image: 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=800&auto=format&fit=crop&q=60',
+      description: 'Floating unit'
     }
   ]);
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [showCenter, setShowCenter] = useState(false);
+  const [isAddingItem, setIsAddingItem] = useState(false);
   
   // State for collapsibles
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({ 'Bedroom': true, 'Living Room': true });
@@ -135,21 +140,38 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
     }));
   };
 
-  const handleAddNewItem = () => {
+  const handleAddNewItem = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const category = formData.get('category') as string;
+    const name = formData.get('name') as string;
+    const dimensions = formData.get('dimensions') as string;
+    const description = formData.get('description') as string;
+    
+    // Parse dimensions (e.g., "6x7" or "6")
+    const parts = dimensions.toLowerCase().split('x').map(p => parseFloat(p.trim()) || 1);
+    const width = parts[0] || 1;
+    const height = parts[1] || parts[0] || 1;
+
     const template = FURNITURE_TEMPLATES[0];
     const newItem: QuotationItem = {
       id: `it-${Date.now()}`,
       templateId: template.id,
-      name: `New ${template.name}`,
-      category: 'Uncategorized',
-      width: template.defaultWidth,
-      height: template.defaultHeight,
+      name: name,
+      category: category,
+      width: width,
+      height: height,
       plyType: COMPONENT_PRICES[0].id,
       shutterType: 'wooden',
-      total: 15000,
-      image: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800&auto=format&fit=crop&q=60'
+      total: Math.round(width * height * 1500), // Approximate mock calculation
+      image: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800&auto=format&fit=crop&q=60',
+      description: description
     };
+    
     setItems(prev => [...prev, newItem]);
+    setExpandedCategories(prev => ({ ...prev, [category]: true }));
+    setIsAddingItem(false);
     handleSelectItem(newItem.id);
   };
 
@@ -167,7 +189,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
   return (
     <div className="h-[calc(100vh-160px)] flex flex-col font-sans bg-white dark:bg-gray-950 overflow-hidden">
       {/* Top Bar - Simplified */}
-      <header className="h-20 border-b dark:border-gray-800 flex items-center justify-between px-8 shrink-0">
+      <header className="h-20 border-b dark:border-gray-800 flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-4">
           {/* <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
              <ChevronLeft className="w-5 h-5 text-gray-400" />
@@ -203,7 +225,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
           <div className="p-6 border-b dark:border-gray-800 flex items-center justify-between">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Project Items</h3>
             <button 
-              onClick={handleAddNewItem}
+              onClick={() => setIsAddingItem(true)}
               className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-blue-600 transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -554,6 +576,61 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
           </AnimatePresence>
         </section>
       </div>
+      <AnimatePresence>
+        {isAddingItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-950 rounded-[2.5rem] border dark:border-gray-800 shadow-2xl w-full max-w-lg overflow-hidden"
+            >
+              <div className="px-10 py-8 border-b dark:border-gray-800 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-black italic">Add Project Item</h3>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                    System Entity: Quotation Entry
+                  </p>
+                </div>
+                <button onClick={() => setIsAddingItem(false)} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddNewItem} className="p-10 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
+                <div className="space-y-1">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Section Header (e.g. Bedroom)</label>
+                   <input name="category" required placeholder="Bedroom, Bathroom..." className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" />
+                </div>
+                
+                <div className="space-y-1">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Secondary Section (e.g. TV Unit)</label>
+                   <input name="name" required placeholder="Wardrobe, Sofa..." className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" />
+                </div>
+
+                <div className="space-y-1">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Dimension (Width x Height in ft)</label>
+                   <input name="dimensions" required placeholder="e.g. 6x7" className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Additional Comment</label>
+                  <textarea name="description" rows={3} placeholder="Add specific details or special instructions..." className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-medium resize-none outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div className="pt-6 flex gap-4">
+                  <button type="submit" className="flex-1 py-5 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    Insert Component
+                  </button>
+                  <button type="button" onClick={() => setIsAddingItem(false)} className="px-10 py-5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-xs uppercase tracking-widest">
+                    Discard
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
