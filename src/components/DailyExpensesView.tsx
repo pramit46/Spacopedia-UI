@@ -141,7 +141,8 @@ export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: Daily
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b dark:border-gray-800 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                <th className="px-10 py-8">Identity</th>
+                <th className="px-10 py-8">#</th>
+                <th className="px-6 py-8">Identity</th>
                 <th className="px-6 py-8">Classification</th>
                 <th className="px-6 py-8">Details & Geo-Data</th>
                 <th className="px-6 py-8">Remarks</th>
@@ -150,11 +151,14 @@ export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: Daily
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {items.map((e) => {
+              {items.map((e, index) => {
                  const canDelete = currentUser.role === 'owner' || e.userId === currentUser.id;
                  return (
                   <tr key={e.id} className="group hover:bg-gray-50/30 dark:hover:bg-gray-900/40 transition-all">
                     <td className="px-10 py-8">
+                       <span className="text-[10px] font-black text-gray-400">#{String(index + 1).padStart(2, '0')}</span>
+                    </td>
+                    <td className="px-6 py-8">
                        <div className="flex items-center gap-4">
                          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
                            <FileText className="w-6 h-6" />

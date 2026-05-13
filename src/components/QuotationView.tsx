@@ -169,9 +169,9 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
       {/* Top Bar - Simplified */}
       <header className="h-20 border-b dark:border-gray-800 flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
-            <ChevronLeft className="w-5 h-5 text-gray-400" />
-          </button>
+          {/* <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
+             <ChevronLeft className="w-5 h-5 text-gray-400" />
+           </button> */}
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-800 mx-2" />
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
