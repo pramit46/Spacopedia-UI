@@ -223,12 +223,19 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items }),
         });
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.status === 'success') {
           setLastSaved(new Date().toLocaleTimeString());
         }
       } catch (err) {
-        console.error('Auto-save failed:', err);
+        // Quietly fail for auto-save to avoid popping up errors to the user constantly
+        // but log it for debugging
+        console.warn('Sync delayed:', err instanceof Error ? err.message : 'Network error');
       }
     };
 

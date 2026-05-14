@@ -31,9 +31,14 @@ async function startServer() {
   });
 
   app.post("/api/quotation/save", (req, res) => {
-    const { items } = req.body;
-    console.log("Saving quotation delta:", items.length, "items");
-    res.json({ status: "success", timestamp: new Date().toISOString() });
+    try {
+      const { items } = req.body;
+      console.log(`[API] Saving quotation delta: ${items?.length || 0} items at ${new Date().toISOString()}`);
+      res.json({ status: "success", timestamp: new Date().toISOString() });
+    } catch (error) {
+      console.error("[API] Error saving quotation:", error);
+      res.status(500).json({ status: "error", message: "Failed to save quotation" });
+    }
   });
 
   // Vite middleware for development
@@ -56,4 +61,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("Critical: Server failed to start:", err);
+  process.exit(1);
+});
