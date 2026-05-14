@@ -361,8 +361,8 @@ export function AccountsView({
         )}
         {selectedPayment && (
           <DetailModal 
-            title="Project Collections"
-            data={payments}
+            title={selectedPayment.tranche}
+            data={[selectedPayment]}
             onClose={() => setSelectedPayment(null)}
           />
         )}

@@ -89,13 +89,15 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
   ]);
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [showCenter, setShowCenter] = useState(false);
+  const [showRight, setShowRight] = useState(true);
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   
   // State for collapsibles
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({ 'Bedroom': true, 'Living Room': true });
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 'dimensions': true, 'carcass': false, 'shutter': false, 'pricing': false });
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 'dimensions': true, 'carcass': false, 'shutter': false, 'shelves': false, 'pricing': false });
 
   const selectedItem = useMemo(() => items.find(i => i.id === selectedItemId), [items, selectedItemId]);
   const totalProjectValue = useMemo(() => items.reduce((acc, item) => acc + item.total, 0), [items]);
@@ -120,6 +122,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
   const handleSelectItem = (id: string) => {
     setSelectedItemId(id);
     setShowCenter(true);
+    setShowRight(true);
   };
 
   const calculateTotal = (width: number, height: number, depth: number, plyId: string) => {
@@ -195,12 +198,17 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
 
   const handleDeleteItem = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Remove this item from quotation?')) {
-      setItems(prev => prev.filter(i => i.id !== id));
-      if (selectedItemId === id) {
+    setItemToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete) {
+      setItems(prev => prev.filter(i => i.id !== itemToDelete));
+      if (selectedItemId === itemToDelete) {
         setSelectedItemId(null);
         setShowCenter(false);
       }
+      setItemToDelete(null);
     }
   };
 
@@ -381,8 +389,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
-              <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
+                 <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
                 {/* 1. DIMENSIONS */}
                 <div className="border-b dark:border-gray-800">
                   <button 
@@ -515,14 +522,51 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
                   </AnimatePresence>
                 </div>
 
-                {/* 4. PRICING INTELLIGENCE */}
-                <div>
+                {/* 4. SHELVES */}
+                <div className="border-b dark:border-gray-800">
+                  <button 
+                    onClick={() => toggleSection('shelves')}
+                    className="w-full flex items-center justify-between p-8 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="w-6 h-6 rounded bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 flex items-center justify-center text-[10px] font-black">4</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Shelves</span>
+                    </div>
+                    {expandedSections['shelves'] ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {expandedSections['shelves'] && (
+                      <motion.div 
+                        initial={{ height: 0 }} 
+                        animate={{ height: 'auto' }} 
+                        exit={{ height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-8 pb-10 space-y-4">
+                           <p className="text-[9px] font-bold text-gray-400 uppercase">Shelving Infrastructure</p>
+                           <div className="flex items-center gap-4">
+                             <input 
+                               type="number"
+                               value={selectedItem.shelvesCount || 0}
+                               onChange={e => handleUpdateItem(selectedItem.id, { shelvesCount: parseInt(e.target.value) || 0 })}
+                               className="w-24 bg-gray-50 dark:bg-gray-900 p-3 rounded-xl font-bold border-transparent border-b-2 border-b-blue-100 dark:border-b-blue-900/30 focus:border-b-blue-600 outline-none text-sm transition-all text-center"
+                             />
+                             <p className="text-xs font-medium text-gray-500">Internal shelving units to be fabricated</p>
+                           </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* 5. PRICING INTELLIGENCE */}
+                <div className="border-b dark:border-gray-800">
                   <button 
                     onClick={() => toggleSection('pricing')}
                     className="w-full flex items-center justify-between p-8 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="w-6 h-6 rounded bg-green-50 dark:bg-green-900/30 text-green-600 flex items-center justify-center text-[10px] font-black">4</span>
+                      <span className="w-6 h-6 rounded bg-green-50 dark:bg-green-900/30 text-green-600 flex items-center justify-center text-[10px] font-black">5</span>
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Valuation</span>
                     </div>
                     {expandedSections['pricing'] ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
@@ -582,14 +626,30 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
         {/* Right Column: 3D Visualization */}
         <section className="flex-1 bg-gray-50 dark:bg-gray-900 relative flex flex-col overflow-hidden">
           <AnimatePresence mode="wait">
-            {selectedItem ? (
+            {selectedItem && showRight ? (
               <motion.div 
                 key={selectedItem.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex-1 relative"
+                className="flex-1 relative flex flex-col"
               >
+                {/* Close Button for Right Column */}
+                <button 
+                  onClick={() => setShowRight(false)}
+                  className="absolute top-6 right-6 z-20 p-3 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl border dark:border-gray-800 shadow-xl text-gray-400 hover:text-red-500 transition-all group lg:hidden"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="absolute top-6 right-6 z-20 hidden lg:block">
+                  <button 
+                    onClick={() => setShowRight(false)}
+                    className="p-3 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl rounded-2xl border dark:border-gray-800 shadow-xl text-gray-400 hover:text-red-500 transition-all group"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
                 {/* Visual Preview */}
                 <div className="flex-1 relative bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center p-12">
                   <div className="max-w-2xl w-full aspect-[4/3] rounded-[3rem] overflow-hidden shadow-2xl relative group">
@@ -703,7 +763,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-gray-950 rounded-[2.5rem] border dark:border-gray-800 shadow-2xl w-full max-w-2xl overflow-hidden"
+              className="bg-white dark:bg-gray-950 rounded-[2.5rem] border dark:border-gray-800 shadow-2xl w-full max-w-4xl overflow-hidden"
             >
               <div className="px-10 py-8 border-b dark:border-gray-800 flex items-center justify-between">
                 <div>
@@ -750,20 +810,20 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
                     Hardware Orchestration logic
                   </h4>
                   
-                  <div className="grid grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-5">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Knob Configuration</label>
-                        <div className="flex gap-2">
-                           <input name="knobStyle" placeholder="Style (e.g. Round)" className="flex-1 p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
-                           <input name="knobColor" placeholder="Color" className="w-24 p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                        <div className="grid grid-cols-[1fr,80px] gap-2">
+                           <input name="knobStyle" placeholder="Style" className="p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                           <input name="knobColor" placeholder="Col" className="p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Handle Implementation</label>
-                        <div className="flex gap-2">
-                           <input name="handleStyle" placeholder="Style (e.g. Slim)" className="flex-1 p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
-                           <input name="handleColor" placeholder="Color" className="w-24 p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                        <div className="grid grid-cols-[1fr,80px] gap-2">
+                           <input name="handleStyle" placeholder="Style" className="p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                           <input name="handleColor" placeholder="Col" className="p-4 bg-white dark:bg-gray-950 border dark:border-gray-800 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
                       </div>
                     </div>
@@ -798,6 +858,38 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
             </motion.div>
           </div>
         )}
+        <AnimatePresence>
+          {itemToDelete && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white dark:bg-gray-950 rounded-[2rem] border dark:border-gray-800 shadow-2xl w-full max-w-md overflow-hidden p-8 text-center"
+              >
+                 <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Trash2 className="w-8 h-8 text-red-500" />
+                 </div>
+                 <h3 className="text-xl font-black italic mb-2">Delete Component?</h3>
+                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">This action will permanently remove this architectural asset from the technical quotation.</p>
+                 <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={confirmDelete}
+                      className="py-4 rounded-xl bg-red-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                    >
+                      Confirm Delete
+                    </button>
+                    <button 
+                      onClick={() => setItemToDelete(null)}
+                      className="py-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+                    >
+                      Keep Asset
+                    </button>
+                 </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </div>
   );
