@@ -20,6 +20,41 @@ export interface RolePermission {
   allowedTabs: string[];
 }
 
+export interface MaterialInventoryItem {
+  id: string;
+  projectId: string;
+  date: string;
+  materialName: string;
+  size: string;
+  count: number;
+  unitPrice: number;
+  totalPrice: number;
+  vendorId?: string;
+  approxDeliveryDate?: string;
+  invoiceRaised: boolean;
+  paymentMade: number; // Linked to vendor costs
+  pendingAmount: number;
+  comment?: string;
+}
+
+export const INITIAL_MATERIALS: MaterialInventoryItem[] = [
+  {
+    id: 'mat1',
+    projectId: 'PROJ-2024-07-001',
+    date: '2024-07-15',
+    materialName: 'Commercial Plywood (18mm)',
+    size: '8ft x 4ft',
+    count: 12,
+    unitPrice: 110,
+    totalPrice: 1320,
+    vendorId: 'v3',
+    invoiceRaised: true,
+    paymentMade: 1320,
+    pendingAmount: 0,
+    comment: 'For wardrobe carcass'
+  }
+];
+
 export const AVAILABLE_TABS: TabConfig[] = [
   { id: 'quotation', label: 'Quotation', iconName: 'FileText' },
   { id: 'design', label: 'Design', iconName: 'ImageIcon' },

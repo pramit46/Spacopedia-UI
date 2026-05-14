@@ -19,7 +19,7 @@ import {
   CloudCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, FURNITURE_TEMPLATES, COMPONENT_PRICES } from '../mockData';
+import { User, FURNITURE_TEMPLATES, COMPONENT_PRICES, MaterialInventoryItem } from '../mockData';
 
 interface QuotationItem {
   id: string;
@@ -43,9 +43,10 @@ interface QuotationItem {
 interface QuotationViewProps {
   currentUser: User;
   projectId: string;
+  onSyncMaterials: (materials: MaterialInventoryItem[]) => void;
 }
 
-export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
+export function QuotationView({ currentUser, projectId, onSyncMaterials }: QuotationViewProps) {
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       id: 'it-1', 
@@ -212,6 +213,73 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
     }
   };
 
+  const handleFinalSubmit = () => {
+    const aggregatedMaterials: MaterialInventoryItem[] = [];
+    
+    items.forEach(item => {
+      // 1. CARCASS MATERIAL
+      const plyPrice = COMPONENT_PRICES.find(p => p.id === item.plyType);
+      // Rough area calc: Area * 3.5 (standard caricature factor)
+      const plyArea = Math.round(item.width * item.height * 3.5);
+      
+      aggregatedMaterials.push({
+        id: `mat-ply-${item.id}`,
+        projectId,
+        date: new Date().toISOString().split('T')[0],
+        materialName: plyPrice?.name || 'Commercial Plywood',
+        size: `${item.width}ft x ${item.height}ft`,
+        count: plyArea,
+        unitPrice: plyPrice?.rate || 0,
+        totalPrice: plyArea * (plyPrice?.rate || 0),
+        invoiceRaised: false,
+        paymentMade: 0,
+        pendingAmount: plyArea * (plyPrice?.rate || 0),
+        comment: `Derived from ${item.name}`
+      });
+
+      // 2. HARDWARE (Hinges/Pairs)
+      const hingesRate = COMPONENT_PRICES.find(p => p.id === 'cp6')?.rate || 450;
+      // Estimate: 4 hinges per 7ft height
+      const hingeCount = Math.ceil(item.height / 2) * 2;
+      aggregatedMaterials.push({
+        id: `mat-hinge-${item.id}`,
+        projectId,
+        date: new Date().toISOString().split('T')[0],
+        materialName: 'Hinges (Soft Close)',
+        size: 'Standard',
+        count: hingeCount,
+        unitPrice: hingesRate,
+        totalPrice: hingeCount * hingesRate,
+        invoiceRaised: false,
+        paymentMade: 0,
+        pendingAmount: hingeCount * hingesRate,
+        comment: `Required for ${item.name} shutters`
+      });
+
+      // 3. KNOBS/HANDLES
+      if (item.knobStyle) {
+        const knobRate = COMPONENT_PRICES.find(p => p.id === 'cp3')?.rate || 150;
+        aggregatedMaterials.push({
+          id: `mat-knob-${item.id}`,
+          projectId,
+          date: new Date().toISOString().split('T')[0],
+          materialName: `Knob (${item.knobStyle})`,
+          size: item.knobColor || 'Default',
+          count: 2, // Default 2 per unit
+          unitPrice: knobRate,
+          totalPrice: 2 * knobRate,
+          invoiceRaised: false,
+          paymentMade: 0,
+          pendingAmount: 2 * knobRate,
+          comment: `Hardware for ${item.name}`
+        });
+      }
+    });
+
+    onSyncMaterials(aggregatedMaterials);
+    alert('Technical inventory synchronized with Material Management system.');
+  };
+
   // Auto-save logic every 30 seconds
   useEffect(() => {
     if (items.length === 0) return;
@@ -363,7 +431,10 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
           </div>
 
           <div className="p-6 border-t dark:border-gray-800 bg-white dark:bg-gray-950">
-            <button className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 active:scale-95 transition-all">
+            <button 
+              onClick={handleFinalSubmit}
+              className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 active:scale-95 transition-all outline-none"
+            >
               Final Submit
             </button>
           </div>

@@ -27,8 +27,10 @@ import {
   AVAILABLE_TABS,
   INITIAL_ROLE_PERMISSIONS,
   INITIAL_CLIENTS,
+  INITIAL_MATERIALS,
   RolePermission,
-  ClientMaster
+  ClientMaster,
+  MaterialInventoryItem
 } from './mockData';
 
 import { AccountSubView } from './types';
@@ -44,6 +46,7 @@ import { WeeklyStatusView } from './components/WeeklyStatusView';
 import { AccountsView } from './components/AccountsView';
 import { LegalView } from './components/LegalView';
 import { QuotationView } from './components/QuotationView';
+import { MaterialView } from './components/MaterialView';
 
 // --- Icon Mapping Helper for Tabs ---
 const ICON_MAP: Record<string, any> = {
@@ -75,6 +78,7 @@ export default function App() {
   const [manpower, setManpower] = useState<ManpowerMaster[]>(INITIAL_MANPOWER);
   const [clients, setClients] = useState<ClientMaster[]>(INITIAL_CLIENTS);
   const [users, setUsers] = useState<User[]>(USERS);
+  const [materials, setMaterials] = useState<MaterialInventoryItem[]>(INITIAL_MATERIALS);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(INITIAL_ROLE_PERMISSIONS);
   const [selectedWeekId, setSelectedWeekId] = useState<string | null>(INITIAL_WEEKLY_STATUS[0]?.id || null);
   const [isCreatingStatus, setIsCreatingStatus] = useState(false);
@@ -328,9 +332,27 @@ export default function App() {
                 <QuotationView 
                   currentUser={currentUser}
                   projectId={selectedProject}
+                  onSyncMaterials={(newMaterials) => {
+                    setMaterials(prev => {
+                      // Filter out existing auto-synced materials for this project if we want to replace
+                      // or just append. Usually, replace is safer for "Final Submit" sync.
+                      const otherProjects = prev.filter(m => m.projectId !== selectedProject);
+                      return [...otherProjects, ...newMaterials];
+                    });
+                  }}
                 />
               )}
-              {!['design', 'billing', 'weekly-status', 'accounts', 'legal', 'quotation'].includes(activeTab) && (
+              {activeTab === 'material' && (
+                <MaterialView 
+                  currentUser={currentUser}
+                  items={materials}
+                  vendors={vendors}
+                  onDelete={(id) => setMaterials(prev => prev.filter(m => m.id !== id))}
+                  onUpdate={(item) => setMaterials(prev => prev.map(m => m.id === item.id ? item : m))}
+                  onAdd={(item) => setMaterials(prev => [...prev, item])}
+                />
+              )}
+              {!['design', 'billing', 'weekly-status', 'accounts', 'legal', 'quotation', 'material'].includes(activeTab) && (
                 <div className="flex flex-col items-center justify-center min-h-[50vh] text-center border-2 border-dashed dark:border-gray-800 rounded-3xl p-12">
                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 text-gray-400">
                      <FileText className="w-8 h-8" />
