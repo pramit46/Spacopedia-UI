@@ -401,8 +401,8 @@ export const INITIAL_WEEKLY_STATUS: WeeklyStatus[] = [
     date: '2024-07-14',
     userId: 'u4',
     photos: [
-      'https://images.unsplash.com/photo-1541888946425-d81bb19480c5?w=500&auto=format&fit=crop&q=60',
-      'https://images.unsplash.com/photo-1503387762-592dee58c460?w=500&auto=format&fit=crop&q=60'
+      'https://www.shutterstock.com/image-photo/cottage-under-construction-interior-unfinished-260nw-2311296329.jpg?w=500&auto=format&fit=crop&q=60',
+      'https://www.shutterstock.com/image-photo/empty-under-construction-room-home-260nw-2170165485.jpg?w=500&auto=format&fit=crop&q=60'
     ],
     progressText: 'Tiling work is 80% complete. Electrical wiring for the living area started. Bathroom plumbing successfully pressure tested.',
     auditMaterial: 'verified',
@@ -421,7 +421,7 @@ export const INITIAL_WEEKLY_STATUS: WeeklyStatus[] = [
     date: '2024-07-07',
     userId: 'u4',
     photos: [
-      'https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?w=500&auto=format&fit=crop&q=60'
+      'https://media.istockphoto.com/id/2190448800/photo/drywall-installers-working-in-kitchen-renovation.jpg?s=612x612&w=0&k=20&c=fsexnZL5oN4Yh18xFVpL8ohH48_s4DmLEEJCEZtIkTo='
     ],
     progressText: 'Foundation wall painting in progress. Verification of shade consistency against Design v2.0 approved.',
     auditMaterial: 'verified',
