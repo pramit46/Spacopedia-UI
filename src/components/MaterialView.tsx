@@ -160,7 +160,7 @@ export function MaterialView({
           <table className="w-full text-left border-collapse min-w-[1600px]">
             <thead>
               <tr className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-                <th className="px-8 py-6 sticky left-0 bg-gray-50/50 dark:bg-gray-900 shadow-[2px_0_10px_rgba(0,0,0,0.05)] z-10 min-w-[320px]">Material Detail</th>
+                <th className="px-6 py-6 sticky left-0 bg-gray-50/50 dark:bg-gray-900 shadow-[2px_0_10px_rgba(0,0,0,0.05)] z-10 min-w-[240px]">Material Detail</th>
                 <th className="px-6 py-6 border-l dark:border-gray-800">Qty</th>
                 <th className="px-6 py-6 text-right">Unit Rate</th>
                 <th className="px-6 py-6 text-right">Gross Price</th>
@@ -177,46 +177,46 @@ export function MaterialView({
                 const vendor = vendors.find(v => v.id === item.vendorId);
                 return (
                   <tr key={item.id} className="group hover:bg-gray-50/30 dark:hover:bg-gray-900/40 transition-all">
-                    <td className="px-8 py-8 sticky left-0 bg-white dark:bg-gray-950 group-hover:bg-gray-50/30 dark:group-hover:bg-gray-900/40 shadow-[2px_0_10px_rgba(0,0,0,0.05)] z-10">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
-                          <Package className="w-6 h-6" />
+                    <td className="px-6 py-6 sticky left-0 bg-white dark:bg-gray-950 group-hover:bg-gray-50/30 dark:group-hover:bg-gray-900/40 shadow-[2px_0_10px_rgba(0,0,0,0.05)] z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                          <Package className="w-5 h-5" />
                         </div>
-                        <div className="min-w-[320px]">
-                          <p className="text-xl font-black italic tracking-tighter leading-tight mb-1">{item.materialName}</p>
-                          <div className="flex items-center gap-2">
-                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Dim: {item.size}</span>
+                        <div className="min-w-[180px]">
+                          <p className="text-base font-black italic tracking-tighter leading-tight mb-0.5">{item.materialName}</p>
+                          <div className="flex items-center gap-1.5">
+                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Dim: {item.size}</span>
                              <span className="text-gray-200">|</span>
-                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.date}</span>
+                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{item.date}</span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-8 border-l dark:border-gray-800">
+                    <td className="px-6 py-6 border-l dark:border-gray-800">
                       <div className="flex flex-col">
-                        <span className="text-2xl font-black italic tracking-tighter border-b-2 border-blue-600/10 mb-1">{item.count}</span>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">UNITS</span>
+                        <span className="text-xl font-black italic tracking-tighter border-b border-blue-600/10 mb-0.5">{item.count}</span>
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">UNITS</span>
                       </div>
                     </td>
-                    <td className="px-6 py-8 text-right font-bold text-gray-600 dark:text-gray-400 italic">
+                    <td className="px-6 py-6 text-right font-bold text-gray-600 dark:text-gray-400 italic">
                       ₹{item.unitPrice.toLocaleString()}
                     </td>
-                    <td className="px-6 py-8 text-right font-medium text-gray-400 line-through text-xs">
+                    <td className="px-6 py-6 text-right font-medium text-gray-400 line-through text-xs">
                       ₹{item.totalPrice.toLocaleString()}
                     </td>
-                    <td className="px-6 py-8 text-right bg-orange-50/10 dark:bg-orange-950/10">
+                    <td className="px-6 py-6 text-right bg-orange-50/10 dark:bg-orange-950/10">
                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-black rounded-lg">-{item.discountPercentage}%</span>
                     </td>
-                    <td className="px-6 py-8 text-right bg-orange-50/10 dark:bg-orange-950/10 text-orange-600/70 italic font-bold">
+                    <td className="px-6 py-6 text-right bg-orange-50/10 dark:bg-orange-950/10 text-orange-600/70 italic font-bold">
                        ₹{item.discountAmount.toLocaleString()}
                     </td>
-                    <td className="px-6 py-8 text-right bg-blue-50/10 dark:bg-blue-950/10">
+                    <td className="px-6 py-6 text-right bg-blue-50/10 dark:bg-blue-950/10">
                       <p className="text-3xl font-black italic text-blue-600 tracking-tighter drop-shadow-sm">₹{item.finalPrice.toLocaleString()}</p>
                     </td>
-                    <td className="px-8 py-8">
+                    <td className="px-8 py-6">
                        <div className="flex flex-col gap-2 min-w-[180px]">
                          <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                           <div className="w-6 h-6 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
                              <Building2 className="w-3.5 h-3.5 text-gray-400" />
                            </div>
                            <span className="text-sm font-black italic tracking-tight text-gray-700 dark:text-gray-300">{vendor?.name || 'Unassigned'}</span>
@@ -227,7 +227,7 @@ export function MaterialView({
                          </div>
                        </div>
                     </td>
-                    <td className="px-6 py-8">
+                    <td className="px-6 py-6">
                        <div className="space-y-3 min-w-[140px]">
                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl w-fit ${item.invoiceRaised ? 'bg-green-50 dark:bg-green-900/10 text-green-600' : 'bg-orange-50 dark:bg-orange-900/10 text-orange-500'}`}>
                            {item.invoiceRaised ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
@@ -239,7 +239,7 @@ export function MaterialView({
                          </div>
                        </div>
                     </td>
-                    <td className="px-8 py-8 text-right sticky right-0 bg-white dark:bg-gray-950 group-hover:bg-gray-50/30 dark:group-hover:bg-gray-900/40 shadow-[-2px_0_10px_rgba(0,0,0,0.05)] z-10">
+                    <td className="px-8 py-6 text-right sticky right-0 bg-white dark:bg-gray-950 group-hover:bg-gray-50/30 dark:group-hover:bg-gray-900/40 shadow-[-2px_0_10px_rgba(0,0,0,0.05)] z-10">
                        <div className="flex items-center justify-end gap-2">
                           {item.invoiceFile && (
                             <button className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="View Invoice">
