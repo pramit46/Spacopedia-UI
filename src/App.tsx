@@ -254,7 +254,7 @@ export default function App() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar visibility control - Commented out for full-width views */}
-        {!['legal', 'billing', 'design', 'accounts', 'quotation'].includes(activeTab) && (
+        {!['legal', 'billing', 'design', 'accounts', 'quotation', 'material'].includes(activeTab) && (
           <Sidebar 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -277,7 +277,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className={`${activeTab === 'quotation' ? 'w-full' : 'max-w-6xl mx-auto'}`}
+              className={`${['quotation', 'material'].includes(activeTab) ? 'w-full' : 'max-w-6xl mx-auto'}`}
             >
               {activeTab === 'design' && (
                 <DesignView 
