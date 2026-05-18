@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Vendor, ManpowerMaster, ClientMaster, User, ProjectPayment, ProjectCostItem } from '../../mockData';
+import { Vendor } from '../objects/vendor';
+import { User } from '../objects/user';
+import { Project } from '../objects/project';
+import { ManpowerMaster } from '../objects/manpower';
+import { ProjectPayment } from '../objects/projectPayment';
+import { ClientMaster } from '../objects/client';
+import { ProjectCostItem } from '../objects/projectCostItem';
 import { VendorManagement } from './VendorManagement';
 import { ClientManagement } from './ClientManagement';
 import { ManpowerManagement } from './ManpowerManagement';
+import { ProjectManagement } from './ProjectManagement';
 import PriceMasterData from './PriceMasterData';
 import { ClientPaymentsView } from './ClientPaymentsView';
 import { VendorSettlementsView } from './VendorSettlementsView';
-import { Building2, User as UserIcon, HardHat, Tag, Database, List, Package } from 'lucide-react';
+import { Building, Building2, User as UserIcon, HardHat, Tag, Database, List, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MaterialLookup from './MaterialLookup';
 
@@ -21,6 +28,8 @@ interface MasterDataHubProps {
   setPayments: React.Dispatch<React.SetStateAction<ProjectPayment[]>>;
   costs: ProjectCostItem[];
   setCosts: React.Dispatch<React.SetStateAction<ProjectCostItem[]>>;
+  projects: Project[];
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   currentUser: User;
   selectedProject: string;
   canEdit: boolean;
@@ -39,11 +48,14 @@ export function MasterDataHub({
   setCosts,
   currentUser,
   selectedProject,
+  projects,
+  setProjects,
   canEdit
 }: MasterDataHubProps) {
-  const [activeTab, setActiveTab] = useState<'clients' | 'vendors' | 'manpower' | 'pricing' | 'material-lookup' | 'client-payments' | 'vendor-settlements'>('clients');
+  const [activeTab, setActiveTab] = useState<'projects' | 'clients' | 'vendors' | 'manpower' | 'pricing' | 'material-lookup' | 'client-payments' | 'vendor-settlements'>('clients');
 
   const tabs = [
+    { id: 'projects', label: 'Projects', icon: Building },
     { id: 'clients', label: 'Clients', icon: UserIcon },
     { id: 'vendors', label: 'Vendors', icon: Building2 },
     { id: 'manpower', label: 'Manpower', icon: HardHat },
@@ -86,6 +98,9 @@ export function MasterDataHub({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
+            {activeTab === 'projects' && (
+              <ProjectManagement projects={projects} setProjects={setProjects} canEdit={canEdit} />
+            )}
             {activeTab === 'clients' && (
               <ClientManagement clients={clients} setClients={setClients} canEdit={canEdit} />
             )}
@@ -105,9 +120,11 @@ export function MasterDataHub({
               <ClientPaymentsView 
                 currentUser={currentUser}
                 payments={payments}
+                projects={projects}
+                clients={clients}
                 onAdd={(p) => setPayments(prev => [...prev, p])}
+                onUpdate={(p) => setPayments(prev => prev.map(item => item.id === p.id ? p : item))}
                 onDelete={(id) => setPayments(prev => prev.filter(p => p.id !== id))}
-                projectId={selectedProject}
               />
             )}
             {activeTab === 'vendor-settlements' && (
@@ -115,9 +132,10 @@ export function MasterDataHub({
                 currentUser={currentUser}
                 costs={costs}
                 vendors={vendors}
+                projects={projects}
                 onAdd={(c) => setCosts(prev => [...prev, c])}
+                onUpdate={(c) => setCosts(prev => prev.map(item => item.id === c.id ? c : item))}
                 onDelete={(id) => setCosts(prev => prev.filter(c => c.id !== id))}
-                projectId={selectedProject}
               />
             )}
           </motion.div>

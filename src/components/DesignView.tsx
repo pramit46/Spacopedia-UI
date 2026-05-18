@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileText, Trash2, Box, ExternalLink, X, Plus } from 'lucide-react';
-import { User, DesignVersion } from '../mockData';
+import { User } from './objects/user';
+import { DesignVersion } from './objects/design';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DesignViewProps {
@@ -8,11 +9,14 @@ interface DesignViewProps {
   items: DesignVersion[];
   onDelete: (id: string) => void;
   onAdd?: (v: DesignVersion) => void;
+  project_id: string;
 }
 
-export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewProps) {
+export function DesignView({ currentUser, items, onDelete, onAdd, project_id }: DesignViewProps) {
   const [showUpload, setShowUpload] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  const filteredItems = items.filter(v => v.project_id === project_id);
 
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
@@ -35,6 +39,7 @@ export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewPr
           </div>
           <h2 className="text-4xl font-black italic tracking-tighter">Design Iterations</h2>
           <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Centralized visualization repository for iterative prototypes</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Project: {project_id}</p>
         </div>
         {(currentUser.role === 'designer' || currentUser.role === 'owner') && (
           <button 
@@ -60,7 +65,7 @@ export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewPr
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {items.map((v, index) => {
+              {filteredItems.map((v, index) => {
                 const canDelete = currentUser.role === 'owner' || v.userId === currentUser.id;
                 return (
                   <tr key={v.id} className="group hover:bg-gray-50/30 dark:hover:bg-gray-900/40 transition-all">
@@ -95,7 +100,7 @@ export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewPr
                         {canDelete && (
                           <button 
                             onClick={() => handleDeleteClick(v.id)}
-                            className="p-3 bg-gray-50 dark:bg-gray-800 hover:bg-red-600 hover:text-white rounded-xl transition-all text-gray-300"
+                            className="p-3 bg-gray-50 dark:border-gray-800 hover:bg-red-600 hover:text-white rounded-xl transition-all text-gray-300"
                             title="Purge Record"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -106,6 +111,13 @@ export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewPr
                   </tr>
                 );
               })}
+              {filteredItems.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center text-gray-400 font-black tracking-widest uppercase text-xs italic">
+                    No iterations documented for this architectural cycle
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -134,7 +146,8 @@ export function DesignView({ currentUser, items, onDelete, onAdd }: DesignViewPr
                   const formData = new FormData(e.currentTarget);
                   const newVersion: DesignVersion = {
                     id: Math.random().toString(36).substr(2, 9),
-                    version: `V${items.length + 1}.0`,
+                    project_id: project_id,
+                    version: `V${filteredItems.length + 1}.0`,
                     date: new Date().toISOString().split('T')[0],
                     description: formData.get('description') as string,
                     fileName: (formData.get('file') as File)?.name || 'concept.pdf',

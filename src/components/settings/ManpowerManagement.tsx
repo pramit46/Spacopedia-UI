@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HardHat, Search, Plus, Trash2, Edit2, X, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ManpowerMaster } from '../../mockData';
+import { ManpowerMaster } from '../objects/manpower';
 
 interface ManpowerManagementProps {
   manpower: ManpowerMaster[];

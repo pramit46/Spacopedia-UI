@@ -16,18 +16,22 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, 
+  AppSettings 
+} from '../types';
+import { 
   Role, 
   RolePermission, 
-  Vendor,
-  ManpowerMaster,
-  ClientMaster,
   INITIAL_ROLES
-} from '../mockData';
-
+} from './objects/role';
+import { ClientMaster } from './objects/client';
+import { ManpowerMaster } from './objects/manpower';
+import { Vendor } from './objects/vendor';
+ 
 // Modular Components
 import { UserRolesHub } from './settings/UserRolesHub';
 import { MasterDataHub } from './settings/MasterDataHub';
 import { AppearanceSettings } from './settings/AppearanceSettings';
+import { GeneralSettings } from './settings/GeneralSettings';
 
 interface SettingsPageProps {
   currentUser: User;
@@ -43,11 +47,15 @@ interface SettingsPageProps {
   setClients: React.Dispatch<React.SetStateAction<ClientMaster[]>>;
   payments: any[];
   setPayments: React.Dispatch<React.SetStateAction<any[]>>;
+  projects: any[];
+  setProjects: React.Dispatch<React.SetStateAction<any[]>>;
   costs: any[];
   setCosts: React.Dispatch<React.SetStateAction<any[]>>;
   selectedProject: string;
   darkMode: boolean;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  appSettings: AppSettings;
+  setAppSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
   onClose: () => void;
 }
 
@@ -68,11 +76,15 @@ export function SettingsPage({
   costs,
   setCosts,
   selectedProject,
+  projects,
+  setProjects,
   darkMode, 
   setDarkMode, 
+  appSettings,
+  setAppSettings,
   onClose 
 }: SettingsPageProps) {
-  const [activeView, setActiveView] = useState<'appearance' | 'user-roles' | 'master-data'>('appearance');
+  const [activeView, setActiveView] = useState<'appearance' | 'user-roles' | 'master-data' | 'general'>('general');
   const [availableRoles, setAvailableRoles] = useState<Role[]>(INITIAL_ROLES);
 
   const canEdit = currentUser.role === 'owner';
@@ -96,6 +108,7 @@ export function SettingsPage({
 
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
           {[
+            { id: 'general', label: 'General', icon: Shield, desc: 'Global rules & config' },
             { id: 'appearance', label: 'Appearance', icon: Palette, desc: 'Visual skin & contrast' },
             { id: 'user-roles', label: 'User & Roles', icon: UsersIcon, desc: 'Access & permissions' },
             { id: 'master-data', label: 'Master Data', icon: Database, desc: 'Global resource nodes' },
@@ -144,6 +157,10 @@ export function SettingsPage({
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
+              {activeView === 'general' && (
+                <GeneralSettings settings={appSettings} onUpdate={setAppSettings} />
+              )}
+
               {activeView === 'appearance' && (
                 <AppearanceSettings darkMode={darkMode} setDarkMode={setDarkMode} />
               )}
@@ -167,6 +184,8 @@ export function SettingsPage({
                   setVendors={setVendors}
                   manpower={manpower}
                   setManpower={setManpower}
+                  projects={projects}
+                  setProjects={setProjects}
                   clients={clients}
                   setClients={setClients}
                   payments={payments}

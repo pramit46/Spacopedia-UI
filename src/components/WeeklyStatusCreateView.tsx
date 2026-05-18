@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Upload, PlusCircle, CheckCircle2, Send } from 'lucide-react';
 import { motion } from 'motion/react';
-import { User, WeeklyStatus } from '../mockData';
+import { User, WeeklyStatus, AppSettings } from '../types';
 
 interface WeeklyStatusCreateViewProps {
   currentUser: User;
   onAdd: (newItem: WeeklyStatus) => void;
   onCancel: () => void;
+  settings: AppSettings;
+  project_id: string;
 }
 
-export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel }: WeeklyStatusCreateViewProps) {
+export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel, settings, project_id }: WeeklyStatusCreateViewProps) {
   const [notifying, setNotifying] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [isProcessed, setIsProcessed] = useState(false);
@@ -17,6 +19,31 @@ export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel }: WeeklyS
   const [progressText, setProgressText] = useState('');
   const [auditMaterial, setAuditMaterial] = useState<'verified' | 'pending' | 'failed'>('pending');
   const [auditSafety, setAuditSafety] = useState<'certified' | 'pending' | 'failed'>('pending');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Check max count
+    if (files.length > settings.maxUploadCount) {
+      alert(`Limit exceeded. You can only upload a maximum of ${settings.maxUploadCount} files.`);
+      return;
+    }
+
+    // Check extensions
+    const invalidFiles = files.filter((file: File) => {
+      const ext = file.name.split('.').pop()?.toUpperCase() || '';
+      return !settings.allowedExtensions.includes(ext);
+    });
+
+    if (invalidFiles.length > 0) {
+      alert(`Invalid file types: ${invalidFiles.map((f: File) => f.name).join(', ')}. Allowed types: ${settings.allowedExtensions.join(', ')}`);
+      return;
+    }
+
+    setSelectedFiles(files);
+    setIsProcessed(false);
+  };
 
   const handleProcess = () => {
     if (!week) {
@@ -50,20 +77,23 @@ export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel }: WeeklyS
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
 
+      const photoUrls = selectedFiles.length > 0 
+        ? selectedFiles.map(file => URL.createObjectURL(file))
+        : ['https://images.unsplash.com/photo-1541888946425-d81bb19480c5?w=500&auto=format&fit=crop&q=60'];
+
       onAdd({
         id: Math.random().toString(36).substr(2, 9),
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
         month: startDate.toLocaleString('default', { month: 'long' }),
         year: year,
         date: new Date().toLocaleDateString(),
-        photos: [
-          'https://images.unsplash.com/photo-1541888946425-d81bb19480c5?w=500&auto=format&fit=crop&q=60'
-        ],
+        photos: photoUrls,
         progressText: progressText,
         auditMaterial: auditMaterial,
         auditSafety: auditSafety,
-        userId: currentUser.id
+        userId: currentUser.id,
+        project_id: project_id
       });
       
       setWeek('');
@@ -103,16 +133,17 @@ export function WeeklyStatusCreateView({ currentUser, onAdd, onCancel }: WeeklyS
                 <input 
                   type="file" 
                   multiple 
-                  onChange={() => setIsProcessed(false)}
+                  onChange={handleFileChange}
                   className="hidden" 
                   id="file-upload"
+                  accept={settings.allowedExtensions.map(ext => `.${ext.toLowerCase()}`).join(',')}
                 />
                 <label 
                   htmlFor="file-upload"
                   className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 border-2 border-dashed dark:border-gray-700 rounded-3xl px-8 py-5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all font-bold text-gray-500"
                 >
                   <PlusCircle className="w-6 h-6 text-blue-500" />
-                  Attach Site Imagery
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} files attached` : 'Attach Site Imagery'}
                 </label>
               </div>
             </div>

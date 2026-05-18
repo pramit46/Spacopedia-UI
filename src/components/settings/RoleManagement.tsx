@@ -15,9 +15,10 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Role, 
-  RolePermission, 
-  AVAILABLE_TABS 
-} from '../../mockData';
+  RolePermission 
+} from '../objects/role';
+
+import { AVAILABLE_TABS } from '../objects/tabConfig';
 
 const ICON_MAP: Record<string, any> = {
   FileText,

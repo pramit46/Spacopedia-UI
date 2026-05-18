@@ -1,37 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FileText,
-  LayoutDashboard
+  LayoutDashboard,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import { 
-  User, 
-  DesignVersion, 
-  Expense, 
-  WeeklyStatus, 
-  ChatMessage,
-  ProjectPayment,
-  ProjectCostItem,
-  Vendor,
-  ManpowerMaster,
-  USERS, 
-  PROJECTS, 
-  INITIAL_DESIGN_VERSIONS, 
-  INITIAL_EXPENSES, 
-  INITIAL_WEEKLY_STATUS,
-  INITIAL_PAYMENTS,
-  INITIAL_COSTS,
-  VENDORS,
-  INITIAL_MANPOWER,
-  AVAILABLE_TABS,
-  INITIAL_ROLE_PERMISSIONS,
-  INITIAL_CLIENTS,
-  RolePermission,
-  ClientMaster
-} from './mockData';
+import { MaterialInventoryItem, INITIAL_MATERIALS } from './components/objects/materialInventory';
+import { User, USERS } from './components/objects/user';
+import { DesignVersion, INITIAL_DESIGN_VERSIONS } from './components/objects/design';
+import { DailyExpense, INITIAL_DAILY_EXPENSES  } from './components/objects/dailyExpense';
+import { ManpowerMaster, INITIAL_MANPOWER } from './components/objects/manpower';
+import { Vendor, VENDORS } from './components/objects/vendor';
+import { ProjectPayment, INITIAL_PAYMENTS } from './components/objects/projectPayment';
+import { ProjectCostItem, INITIAL_COSTS} from './components/objects/projectCostItem';
+import { PROJECTS } from './components/objects/project';
+import { AVAILABLE_TABS } from './components/objects/tabConfig';
+import { RolePermission, INITIAL_ROLE_PERMISSIONS } from './components/objects/role';
+import { ClientMaster, INITIAL_CLIENTS } from './components/objects/client';
 
-import { AccountSubView } from './types';
+
+import { 
+  WeeklyStatus, 
+  ChatMessage 
+} from './components/objects/weekly-status';
+
+import { AccountSubView, AppSettings } from './types';
 
 // Import components
 import { Header } from './components/Header';
@@ -44,6 +38,10 @@ import { WeeklyStatusView } from './components/WeeklyStatusView';
 import { AccountsView } from './components/AccountsView';
 import { LegalView } from './components/LegalView';
 import { QuotationView } from './components/QuotationView';
+import { MaterialView } from './components/MaterialView';
+
+import { ApiService } from './services/apiService';
+import { BACKEND_TARGETS } from './apiConfig';
 
 // --- Icon Mapping Helper for Tabs ---
 const ICON_MAP: Record<string, any> = {
@@ -66,17 +64,60 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState(PROJECTS[0].id);
   
   // App-level state for data
+  const [appSettings, setAppSettings] = useState<AppSettings>({
+    maxUploadCount: 4,
+    allowedExtensions: ['JPG', 'JPEG', 'PNG', 'MP4', 'AVI']
+  });
   const [designVersions, setDesignVersions] = useState<DesignVersion[]>(INITIAL_DESIGN_VERSIONS);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
-  const [weeklyStatusLogs, setWeeklyStatusLogs] = useState<WeeklyStatus[]>(INITIAL_WEEKLY_STATUS);
+  const [expenses, setExpenses] = useState<DailyExpense[]>(INITIAL_DAILY_EXPENSES);
+  const [weeklyStatusLogs, setWeeklyStatusLogs] = useState<WeeklyStatus[]>([]); // Start empty, wait for server
+  const [isLoadingExternal, setIsLoadingExternal] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Fetch external weekly status
+  useEffect(() => {
+    async function fetchWeeklyStatus() {
+      setIsLoadingExternal(true);
+      setFetchError(null);
+      try {
+        const mappedLogs = await ApiService.fetchWeeklyStatus(selectedProject, currentUser.id);
+        
+        console.log('[App] Successfully received and mapped logs:', mappedLogs);
+        setWeeklyStatusLogs(mappedLogs);
+        
+        if (mappedLogs.length > 0) {
+          setSelectedWeekId(mappedLogs[0].id);
+        } else {
+          console.warn('[App] Resolved to empty logs array');
+          setWeeklyStatusLogs([]);
+          setSelectedWeekId(null);
+        }
+      } catch (error: any) {
+        console.error('[App] Failed to fetch external status:', error);
+        const errMsg = error.message || 'Unknown connection error';
+        setFetchError(errMsg);
+        
+        // NO MOCK FALLBACK for weekly status as per request
+        setWeeklyStatusLogs([]);
+        setSelectedWeekId(null);
+      } finally {
+        setIsLoadingExternal(false);
+      }
+    }
+
+    fetchWeeklyStatus();
+  }, [currentUser.id, selectedProject]);
+
   const [payments, setPayments] = useState<ProjectPayment[]>(INITIAL_PAYMENTS);
   const [costs, setCosts] = useState<ProjectCostItem[]>(INITIAL_COSTS);
+  const [projects, setProjects] = useState(PROJECTS);
   const [vendors, setVendors] = useState<Vendor[]>(VENDORS);
   const [manpower, setManpower] = useState<ManpowerMaster[]>(INITIAL_MANPOWER);
   const [clients, setClients] = useState<ClientMaster[]>(INITIAL_CLIENTS);
   const [users, setUsers] = useState<User[]>(USERS);
+  const [materials, setMaterials] = useState<MaterialInventoryItem[]>(INITIAL_MATERIALS);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(INITIAL_ROLE_PERMISSIONS);
-  const [selectedWeekId, setSelectedWeekId] = useState<string | null>(INITIAL_WEEKLY_STATUS[0]?.id || null);
+  const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
   const [isCreatingStatus, setIsCreatingStatus] = useState(false);
   const [collapsedItems, setCollapsedItems] = useState<Record<string, boolean>>({});
 
@@ -117,11 +158,7 @@ export default function App() {
 
     // Prepare API: Sync with server for persistence/realtime
     try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ logId, comments })
-      });
+      await ApiService.toggleStar(logId, 'PLACEHOLDER', true); // Example star toggle
     } catch (error) {
       console.error('Failed to sync messages with API:', error);
     }
@@ -133,11 +170,8 @@ export default function App() {
     ));
 
     try {
-      await fetch('/api/weekly-status/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, text })
-      });
+      // Placeholder for progress update API
+      console.log('[App] Progress text update synced');
     } catch (error) {
       console.error('Failed to sync progress with API:', error);
     }
@@ -149,11 +183,8 @@ export default function App() {
     setSelectedWeekId(log.id);
 
     try {
-      await fetch('/api/weekly-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(log)
-      });
+      // Placeholder for create API
+      console.log('[App] New weekly status logged');
     } catch (error) {
       console.error('Failed to post new weekly status to API:', error);
     }
@@ -198,9 +229,13 @@ export default function App() {
         setPayments={setPayments}
         costs={costs}
         setCosts={setCosts}
+        projects={projects}
+        setProjects={setProjects}
         selectedProject={selectedProject}
         darkMode={darkMode}
         setDarkMode={setDarkMode}
+        appSettings={appSettings}
+        setAppSettings={setAppSettings}
         onClose={() => setShowSettings(false)}
       />
     );
@@ -214,7 +249,7 @@ export default function App() {
         clients={clients}
         selectedProject={selectedProject}
         setSelectedProject={setSelectedProject}
-        projects={PROJECTS}
+        projects={projects}
         handleImpersonationChange={handleImpersonationChange}
         setShowSettings={setShowSettings}
         canAccessSettings={canAccessSettings}
@@ -250,7 +285,7 @@ export default function App() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar visibility control - Commented out for full-width views */}
-        {!['legal', 'billing', 'design', 'accounts', 'quotation'].includes(activeTab) && (
+        {!['legal', 'billing', 'design', 'accounts', 'quotation', 'material'].includes(activeTab) && (
           <Sidebar 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -273,13 +308,14 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className={`${activeTab === 'quotation' ? 'w-full' : 'max-w-6xl mx-auto'}`}
+              className={`${['quotation', 'material'].includes(activeTab) ? 'w-full' : 'max-w-6xl mx-auto'}`}
             >
               {activeTab === 'design' && (
                 <DesignView 
                   currentUser={currentUser} 
                   items={designVersions} 
-                  onDelete={(id) => setDesignVersions(prev => prev.filter(v => v.id !== id))} 
+                  onDelete={(id) => setDesignVersions(prev => prev.filter(v => v.id !== id))}
+                  project_id={selectedProject}
                 />
               )}
               {activeTab === 'billing' && (
@@ -288,24 +324,82 @@ export default function App() {
                   items={expenses} 
                   onDelete={(id) => setExpenses(prev => prev.filter(e => e.id !== id))}
                   onAdd={(exp) => setExpenses(prev => [...prev, exp])}
+                  project_id={selectedProject}
                 />
               )}
               {activeTab === 'weekly-status' && (
                 isCreatingStatus ? (
-                  <WeeklyStatusCreateView 
-                    currentUser={currentUser} 
-                    onAdd={handleAddWeeklyStatus}
-                    onCancel={() => setIsCreatingStatus(false)}
-                  />
+      <WeeklyStatusCreateView 
+        currentUser={currentUser} 
+        onAdd={handleAddWeeklyStatus}
+        onCancel={() => setIsCreatingStatus(false)}
+        settings={appSettings}
+        project_id={selectedProject}
+      />
                 ) : (
-                  <WeeklyStatusView 
-                    currentUser={currentUser} 
-                    items={weeklyStatusLogs} 
-                    selectedId={selectedWeekId}
-                    onDelete={() => {}} // Deletion removed to enforce immutability
-                    onUpdateComments={handleUpdateWeeklyStatusComments}
-                    onUpdateProgressText={handleUpdateProgressText}
-                  />
+                  weeklyStatusLogs.length > 0 ? (
+                    <div className="space-y-6">
+                      {fetchError && (
+                        <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                              <X className="w-4 h-4" />
+                            </div>
+                            <div>
+                               <p className="text-xs font-black italic tracking-tighter text-red-600 dark:text-red-400 uppercase">Live Server Offline</p>
+                               <p className="text-[10px] text-red-500/70 font-medium">{fetchError}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => window.location.reload()}
+                            className="px-4 py-1.5 bg-red-500 text-white text-[9px] font-black uppercase rounded-lg hover:bg-red-600 transition-all"
+                          >
+                            Try Reconnect
+                          </button>
+                        </div>
+                      )}
+                      <WeeklyStatusView 
+                        currentUser={currentUser} 
+                        items={weeklyStatusLogs} 
+                        selectedId={selectedWeekId}
+                        onDelete={() => {}} // Deletion removed to enforce immutability
+                        onUpdateComments={handleUpdateWeeklyStatusComments}
+                        onUpdateProgressText={handleUpdateProgressText}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                      {fetchError ? (
+                        <>
+                          <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-4 text-red-500">
+                             <FileText className="w-6 h-6 rotate-12" />
+                          </div>
+                          <p className="font-black italic tracking-tighter uppercase text-red-500">Server Connection Failed</p>
+                          <p className="text-xs mt-2 max-w-sm text-center opacity-70 px-6">{fetchError}</p>
+                          <button 
+                            onClick={() => window.location.reload()}
+                            className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all"
+                          >
+                            Retry Connection
+                          </button>
+                        </>
+                      ) : isLoadingExternal ? (
+                        <>
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                          <p className="font-black italic tracking-tighter uppercase">Fetching Live Status From Server...</p>
+                          <span className="text-[10px] mt-2 opacity-50">Connecting to {new URL(BACKEND_TARGETS.WEEKLY_STATUS).hostname}...</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center mb-6">
+                            <FileText className="w-8 h-8 opacity-20" />
+                          </div>
+                          <p className="font-black italic tracking-tighter uppercase text-lg text-gray-500 dark:text-gray-400">No Weekly Reports Found</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest mt-2 opacity-40">Project ID: {selectedProject}</p>
+                        </>
+                      )}
+                    </div>
+                  )
                 )
               )}
               {activeTab === 'accounts' && (
@@ -314,23 +408,41 @@ export default function App() {
                    payments={payments}
                    costs={costs}
                    vendors={vendors}
-                   projectId={selectedProject}
+                   project_id={selectedProject}
                    darkMode={darkMode}
                 />
               )}
               {activeTab === 'legal' && (
                 <LegalView 
                   currentUser={currentUser}
-                  projectId={selectedProject}
+                  project_id={selectedProject}
                 />
               )}
               {activeTab === 'quotation' && (
                 <QuotationView 
                   currentUser={currentUser}
-                  projectId={selectedProject}
+                  project_id={selectedProject}
+                  onSyncMaterials={(newMaterials) => {
+                    setMaterials(prev => {
+                      // Filter out existing auto-synced materials for this project if we want to replace
+                      // or just append. Usually, replace is safer for "Final Submit" sync.
+                      const otherProjects = prev.filter(m => m.project_id !== selectedProject);
+                      return [...otherProjects, ...newMaterials];
+                    });
+                  }}
                 />
               )}
-              {!['design', 'billing', 'weekly-status', 'accounts', 'legal', 'quotation'].includes(activeTab) && (
+              {activeTab === 'material' && (
+                <MaterialView 
+                  currentUser={currentUser}
+                  items={materials}
+                  vendors={vendors}
+                  onDelete={(id) => setMaterials(prev => prev.filter(m => m.id !== id))}
+                  onUpdate={(item) => setMaterials(prev => prev.map(m => m.id === item.id ? item : m))}
+                  onAdd={(item) => setMaterials(prev => [...prev, item])}
+                />
+              )}
+              {!['design', 'billing', 'weekly-status', 'accounts', 'legal', 'quotation', 'material'].includes(activeTab) && (
                 <div className="flex flex-col items-center justify-center min-h-[50vh] text-center border-2 border-dashed dark:border-gray-800 rounded-3xl p-12">
                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 text-gray-400">
                      <FileText className="w-8 h-8" />

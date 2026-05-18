@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { Plus, CheckCircle2, FileText, Trash2, X, Calculator, ExternalLink, MapPin, MessageSquare, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Expense } from '../mockData';
+import { User } from './objects/user';
+import { DailyExpense } from './objects/dailyExpense';
 
 interface DailyExpensesViewProps {
   currentUser: User;
-  items: Expense[];
+  items: DailyExpense[];
   onDelete: (id: string) => void;
-  onAdd: (e: Expense) => void;
+  onAdd: (e: DailyExpense) => void;
+  project_id: string;
 }
 
-export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: DailyExpensesViewProps) {
+export function DailyExpensesView({ currentUser, items, onDelete, onAdd, project_id }: DailyExpensesViewProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [selectedMode, setSelectedMode] = useState<'Transport' | 'Meals' | 'Other'>('Transport');
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  const filteredItems = items.filter(e => e.project_id === project_id);
 
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
@@ -36,6 +40,7 @@ export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: Daily
           </div>
           <h2 className="text-4xl font-black italic tracking-tighter">OpEx Ledger</h2>
           <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Real-time team logistic overheads.</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Project: {project_id}</p>
         </div>
         {(currentUser.role === 'project' || currentUser.role === 'owner' || currentUser.role === 'accounts') && (
           <button 
@@ -63,7 +68,7 @@ export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: Daily
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
-              {items.map((e, index) => {
+              {filteredItems.map((e, index) => {
                  const canDelete = currentUser.role === 'owner' || e.userId === currentUser.id;
                  const [date, time] = e.timestamp.includes(' ') ? e.timestamp.split(' ') : [e.timestamp, 'N.A.'];
                  return (
@@ -176,8 +181,9 @@ export function DailyExpensesView({ currentUser, items, onDelete, onAdd }: Daily
                   e.preventDefault(); 
                   const formData = new FormData(e.currentTarget);
                   const file = formData.get('receipt') as File;
-                  const newExp: Expense = {
+                  const newExp: DailyExpense = {
                     id: Math.random().toString(36).substr(2, 9),
+                    project_id: project_id,
                     memberName: currentUser.name,
                     memberId: 'EMP' + currentUser.id.slice(-3).toUpperCase(),
                     timestamp: new Date().toLocaleString(),

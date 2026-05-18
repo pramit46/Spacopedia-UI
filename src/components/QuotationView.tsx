@@ -19,7 +19,12 @@ import {
   CloudCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, FURNITURE_TEMPLATES, COMPONENT_PRICES } from '../mockData';
+import { User } from './objects/user';
+import { FURNITURE_TEMPLATES } from './objects/furnitureTemplate';
+import { COMPONENT_PRICES } from './objects/componentPrice';
+import { MaterialInventoryItem } from './objects/materialInventory';
+import { ApiService } from '../services/apiService';
+import { FurnitureBuilder } from './tools/FurnitureBuilder';
 
 interface QuotationItem {
   id: string;
@@ -42,10 +47,11 @@ interface QuotationItem {
 
 interface QuotationViewProps {
   currentUser: User;
-  projectId: string;
+  project_id: string;
+  onSyncMaterials: (materials: MaterialInventoryItem[]) => void;
 }
 
-export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
+export function QuotationView({ currentUser, project_id, onSyncMaterials }: QuotationViewProps) {
   const [items, setItems] = useState<QuotationItem[]>([
     { 
       id: 'it-1', 
@@ -93,6 +99,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
   const [showCenter, setShowCenter] = useState(false);
   const [showRight, setShowRight] = useState(true);
   const [isAddingItem, setIsAddingItem] = useState(false);
+  const [showBuilder, setShowBuilder] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   
   // State for collapsibles
@@ -212,23 +219,89 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
     }
   };
 
+  const handleFinalSubmit = () => {
+    const aggregatedMaterials: MaterialInventoryItem[] = [];
+    
+    items.forEach(item => {
+      // 1. CARCASS MATERIAL
+      const plyPrice = COMPONENT_PRICES.find(p => p.id === item.plyType);
+      // Rough area calc: Area * 3.5 (standard caricature factor)
+      const plyArea = Math.round(item.width * item.height * 3.5);
+      
+      aggregatedMaterials.push({
+        id: `mat-ply-${item.id}`,
+        project_id,
+        date: new Date().toISOString().split('T')[0],
+        materialName: plyPrice?.name || 'Commercial Plywood',
+        size: `${item.width}ft x ${item.height}ft`,
+        count: plyArea,
+        unitPrice: plyPrice?.rate || 0,
+        totalPrice: plyArea * (plyPrice?.rate || 0),
+        discountPercentage: 0,
+        discountAmount: 0,
+        finalPrice: plyArea * (plyPrice?.rate || 0),
+        invoiceRaised: false,
+        paymentMade: 0,
+        pendingAmount: plyArea * (plyPrice?.rate || 0),
+        comment: `Derived from ${item.name}`
+      });
+
+      // 2. HARDWARE (Hinges/Pairs)
+      const hingesRate = COMPONENT_PRICES.find(p => p.id === 'cp6')?.rate || 450;
+      // Estimate: 4 hinges per 7ft height
+      const hingeCount = Math.ceil(item.height / 2) * 2;
+      aggregatedMaterials.push({
+        id: `mat-hinge-${item.id}`,
+        project_id,
+        date: new Date().toISOString().split('T')[0],
+        materialName: 'Hinges (Soft Close)',
+        size: 'Standard',
+        count: hingeCount,
+        unitPrice: hingesRate,
+        totalPrice: hingeCount * hingesRate,
+        discountPercentage: 0,
+        discountAmount: 0,
+        finalPrice: hingeCount * hingesRate,
+        invoiceRaised: false,
+        paymentMade: 0,
+        pendingAmount: hingeCount * hingesRate,
+        comment: `Required for ${item.name} shutters`
+      });
+
+      // 3. KNOBS/HANDLES
+      if (item.knobStyle) {
+        const knobRate = COMPONENT_PRICES.find(p => p.id === 'cp3')?.rate || 150;
+        aggregatedMaterials.push({
+          id: `mat-knob-${item.id}`,
+          project_id,
+          date: new Date().toISOString().split('T')[0],
+          materialName: `Knob (${item.knobStyle})`,
+          size: item.knobColor || 'Default',
+          count: 2, // Default 2 per unit
+          unitPrice: knobRate,
+          totalPrice: 2 * knobRate,
+          discountPercentage: 0,
+          discountAmount: 0,
+          finalPrice: 2 * knobRate,
+          invoiceRaised: false,
+          paymentMade: 0,
+          pendingAmount: 2 * knobRate,
+          comment: `Hardware for ${item.name}`
+        });
+      }
+    });
+
+    onSyncMaterials(aggregatedMaterials);
+    alert('Technical inventory synchronized with Material Management system.');
+  };
+
   // Auto-save logic every 30 seconds
   useEffect(() => {
     if (items.length === 0) return;
 
     const autoSave = async () => {
       try {
-        const response = await fetch('/api/quotation/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const data = await ApiService.saveQuotation(items);
         if (data.status === 'success') {
           setLastSaved(new Date().toLocaleTimeString());
         }
@@ -266,7 +339,7 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
             <div className="flex items-center gap-2 text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none mb-0.5">
               <span>PROJECTS</span>
               <ChevronRight className="w-2.5 h-2.5" />
-              <span className="text-gray-600 dark:text-gray-300">{projectId}</span>
+              <span className="text-gray-600 dark:text-gray-300">{project_id}</span>
             </div>
             <h2 className="text-2xl font-black italic tracking-tighter leading-none">Technical Quotation</h2>
           </div>
@@ -295,12 +368,22 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
         <section className="w-80 border-r dark:border-gray-800 flex flex-col bg-gray-50/30 dark:bg-gray-950 transition-all shrink-0 overflow-hidden">
           <div className="p-6 border-b dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-950">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Project Items</h3>
-            <button 
-              onClick={() => setIsAddingItem(true)}
-              className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowBuilder(true)}
+                className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                title="Launch Intelligence Builder"
+              >
+                <Calculator className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => setIsAddingItem(true)}
+                className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                title="Manual Entry"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
             {(Object.entries(categories) as [string, QuotationItem[]][]).map(([category, categoryItems]) => (
@@ -363,7 +446,10 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
           </div>
 
           <div className="p-6 border-t dark:border-gray-800 bg-white dark:bg-gray-950">
-            <button className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 active:scale-95 transition-all">
+            <button 
+              onClick={handleFinalSubmit}
+              className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 active:scale-95 transition-all outline-none"
+            >
               Final Submit
             </button>
           </div>
@@ -897,6 +983,31 @@ export function QuotationView({ currentUser, projectId }: QuotationViewProps) {
             </div>
           )}
         </AnimatePresence>
+      </AnimatePresence>
+      <AnimatePresence>
+        {showBuilder && (
+          <FurnitureBuilder 
+            onClose={() => setShowBuilder(false)}
+            onSave={(quoteItem) => {
+              const newItem: QuotationItem = {
+                id: `it-${Date.now()}`,
+                name: quoteItem.name,
+                category: 'Living Room', // Default for builder items
+                width: 6, // Placeholders as builder returns total but we need dimensions for UI
+                height: 7,
+                depth: 2,
+                plyType: 'cp2',
+                shutterType: 'wooden',
+                total: quoteItem.amount,
+                image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&auto=format&fit=crop&q=60',
+                description: 'Generated via Intelligence Builder'
+              };
+              setItems(prev => [...prev, newItem]);
+              setShowBuilder(false);
+              handleSelectItem(newItem.id);
+            }}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User, Role, RolePermission } from '../../mockData';
+import { Role, RolePermission } from '../objects/role';
+import { User } from '../objects/user';
 import { UserManagement } from './UserManagement';
 import { RoleManagement } from './RoleManagement';
 import { Users, Lock } from 'lucide-react';

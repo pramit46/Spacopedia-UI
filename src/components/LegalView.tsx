@@ -13,14 +13,14 @@ import {
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User } from '../mockData';
+import { User } from './objects/user';
 
 interface LegalViewProps {
   currentUser: User;
-  projectId: string;
+  project_id: string;
 }
 
-export function LegalView({ currentUser, projectId }: LegalViewProps) {
+export function LegalView({ currentUser, project_id }: LegalViewProps) {
   const [showUpload, setShowUpload] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [documents, setDocuments] = useState([
@@ -65,7 +65,7 @@ export function LegalView({ currentUser, projectId }: LegalViewProps) {
             <span>Compliance Repository</span>
           </div>
           <h2 className="text-4xl font-black italic tracking-tighter">Legal & Instruments</h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Regulatory framework for {projectId}</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Regulatory framework for {project_id}</p>
         </div>
         <button 
           onClick={() => setShowUpload(true)}

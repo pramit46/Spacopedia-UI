@@ -4,8 +4,10 @@ import {
   LayoutDashboard, 
   Settings as SettingsIcon 
 } from 'lucide-react';
-import { Project, User, ClientMaster } from '../mockData';
-
+import { User } from './objects/user';
+import { ClientMaster } from './objects/client';
+import { Project } from './objects/project';
+ 
 interface HeaderProps {
   currentUser: User;
   users: User[];
