@@ -183,8 +183,9 @@ export default function App() {
     setSelectedWeekId(log.id);
 
     try {
-      // Placeholder for create API
-      console.log('[App] New weekly status logged');
+      // Sync with backend for logging/persistence
+      await ApiService.createWeeklyStatus(log);
+      console.log('[App] New weekly status logged and synced with backend');
     } catch (error) {
       console.error('Failed to post new weekly status to API:', error);
     }

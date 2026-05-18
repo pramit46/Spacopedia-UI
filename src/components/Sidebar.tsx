@@ -37,17 +37,17 @@ export function Sidebar({
             <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Navigation</h3>
             <button 
               onClick={() => setIsCreatingStatus(false)}
-              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${!isCreatingStatus ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
+              className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-4 transition-all duration-300 ${!isCreatingStatus ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/40 translate-x-1' : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg hover:text-blue-600 dark:hover:text-blue-400 hover:-translate-y-0.5'}`}
             >
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className={`w-4 h-4 ${!isCreatingStatus ? 'opacity-100' : 'opacity-50'}`} />
               Feed View
             </button>
             {['owner', 'project', 'accounts'].includes(currentUser.role) && (
               <button 
                 onClick={() => setIsCreatingStatus(true)}
-                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-3 transition-all mt-1 ${isCreatingStatus ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
+                className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-4 transition-all duration-300 mt-3 ${isCreatingStatus ? 'bg-blue-600 text-white shadow-2xl shadow-blue-500/40 translate-x-1' : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg hover:text-blue-600 dark:hover:text-blue-400 hover:-translate-y-0.5'}`}
               >
-                <PlusCircle className="w-4 h-4" />
+                <PlusCircle className={`w-4 h-4 ${isCreatingStatus ? 'opacity-100' : 'opacity-50'}`} />
                 New Update
               </button>
             )}

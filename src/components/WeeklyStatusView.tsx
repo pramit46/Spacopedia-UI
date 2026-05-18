@@ -106,7 +106,10 @@ export function WeeklyStatusView({
               ? `${new Date(selectedLog.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${new Date(selectedLog.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
               : 'Weekly Progress Report'}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Logged on {selectedLog.date} by System Node</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.15em] bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-4 py-1.5 rounded-lg inline-flex items-center gap-2 border border-blue-100 dark:border-blue-800/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            Logged on <span className="font-mono">{selectedLog.date}</span> by System Node
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <button 
