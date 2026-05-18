@@ -24,19 +24,17 @@ import {
   Pie, 
   Cell, 
 } from 'recharts';
-import { 
-  User, 
-  ProjectPayment, 
-  ProjectCostItem, 
-  Vendor 
-} from '../mockData';
+import { Vendor } from './objects/vendor';
+import { User } from './objects/user';
+import { ProjectCostItem } from './objects/projectCostItem';
+import { ProjectPayment } from './objects/projectPayment';
 
 interface AccountsViewProps {
   currentUser: User;
   payments: ProjectPayment[];
   costs: ProjectCostItem[];
   vendors: Vendor[];
-  projectId: string;
+  project_id: string;
   darkMode?: boolean;
 }
 
@@ -45,14 +43,14 @@ export function AccountsView({
   payments: allPayments, 
   costs: allCosts, 
   vendors: allVendors,
-  projectId,
+  project_id,
   darkMode = false
 }: AccountsViewProps) {
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<ProjectPayment | null>(null);
 
-  const payments = allPayments.filter(p => p.projectId === projectId);
-  const costs = allCosts.filter(c => c.projectId === projectId);
+  const payments = allPayments.filter(p => p.project_id === project_id);
+  const costs = allCosts.filter(c => c.project_id === project_id);
   const projectVendorIds = new Set(costs.map(c => c.vendorId));
   const vendors = allVendors.filter(v => projectVendorIds.has(v.id));
 
@@ -151,7 +149,7 @@ export function AccountsView({
             <span>Financial Overview</span>
           </div>
           <h2 className="text-4xl font-black italic tracking-tighter">Project Accounting</h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Resource allocation for {projectId}</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Resource allocation for {project_id}</p>
         </div>
         <div className="text-right">
            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Collection Status</p>

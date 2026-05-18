@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, Search, Plus, Trash2, Edit2, X, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Vendor } from '../../mockData';
+import { Vendor } from '../objects/vendor';
 
 interface VendorManagementProps {
   vendors: Vendor[];

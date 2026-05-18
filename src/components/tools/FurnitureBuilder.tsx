@@ -16,10 +16,10 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   FURNITURE_TEMPLATES, 
-  FurnitureTemplate, 
-  COMPONENT_PRICES, 
-  ComponentPrice 
-} from '../mockData';
+  FurnitureTemplate 
+} from '../objects/furnitureTemplate';
+import {COMPONENT_PRICES, 
+  ComponentPrice } from '../objects/componentPrice';
 
 interface FurnitureBuilderProps {
   onClose: () => void;

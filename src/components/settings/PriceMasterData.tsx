@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tag, Search, Plus, Trash2, Edit2, X, Save, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ComponentPrice, COMPONENT_PRICES } from '../../mockData';
+import { ComponentPrice, COMPONENT_PRICES } from '../objects/componentPrice';
 
 export default function PriceMasterData() {
   const [prices, setPrices] = useState<ComponentPrice[]>(COMPONENT_PRICES);

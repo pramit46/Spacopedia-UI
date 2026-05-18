@@ -10,42 +10,54 @@ import {
   Search,
   Users,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, ProjectCostItem, Vendor } from '../../mockData';
+import { Vendor } from '../objects/vendor';
+import { User } from '../objects/user';
+import { ProjectCostItem } from '../objects/projectCostItem';
+import { Project } from '../objects/project';
 
 interface VendorSettlementsViewProps {
   currentUser: User;
   costs: ProjectCostItem[];
   vendors: Vendor[];
+  projects: Project[];
   onAdd: (cost: ProjectCostItem) => void;
+  onUpdate: (cost: ProjectCostItem) => void;
   onDelete: (id: string) => void;
-  projectId: string;
 }
 
-type SortKey = 'date' | 'amount' | 'vendorId';
+type SortKey = 'date' | 'amount' | 'vendorId' | 'project_id';
 
 export function VendorSettlementsView({ 
   currentUser, 
   costs, 
   vendors,
+  projects,
   onAdd, 
-  onDelete,
-  projectId 
+  onUpdate,
+  onDelete
 }: VendorSettlementsViewProps) {
   const [showAdd, setShowAdd] = useState(false);
+  const [editingCost, setEditingCost] = useState<ProjectCostItem | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' } | null>(null);
   const [search, setSearch] = useState('');
 
+  const isOwner = currentUser.role === 'owner';
+
   const filteredCosts = costs
-    .filter(c => c.projectId === projectId)
     .filter(c => {
       const vendorName = vendors.find(v => v.id === c.vendorId)?.name || '';
+      const projectName = projects.find(p => p.id === c.project_id)?.name || '';
       return (
         c.description.toLowerCase().includes(search.toLowerCase()) || 
         c.section.toLowerCase().includes(search.toLowerCase()) ||
-        vendorName.toLowerCase().includes(search.toLowerCase())
+        vendorName.toLowerCase().includes(search.toLowerCase()) ||
+        projectName.toLowerCase().includes(search.toLowerCase()) ||
+        c.project_id.toLowerCase().includes(search.toLowerCase())
       );
     });
 
@@ -80,25 +92,36 @@ export function VendorSettlementsView({
     return sortConfig.direction === 'asc' ? <ChevronUp className="w-3 h-3 ml-1 text-blue-500" /> : <ChevronDown className="w-3 h-3 ml-1 text-blue-500" />;
   };
 
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const file = formData.get('attachment') as File;
     
-    const newCost: ProjectCostItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      projectId: projectId,
+    const costData: ProjectCostItem = {
+      id: editingCost ? editingCost.id : Math.random().toString(36).substr(2, 9),
+      project_id: formData.get('project_id') as string,
       section: formData.get('section') as 'Civil' | 'Electrical' | 'Plumbing' | 'Carpentry' | 'Painting' | 'Design' | 'Other',
       vendorId: formData.get('vendorId') as string,
       date: formData.get('date') as string,
       amount: parseFloat(formData.get('amount') as string),
       status: 'Paid',
       description: formData.get('description') as string,
-      attachment: file?.name || undefined
+      attachment: file?.name || (editingCost?.attachment)
     };
     
-    onAdd(newCost);
-    setShowAdd(false);
+    if (editingCost) {
+      onUpdate(costData);
+      setEditingCost(null);
+    } else {
+      onAdd(costData);
+      setShowAdd(false);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this settlement record?')) {
+      onDelete(id);
+    }
   };
 
   return (
@@ -120,13 +143,15 @@ export function VendorSettlementsView({
             className="w-full bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
           />
         </div>
-        <button 
-          onClick={() => setShowAdd(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95"
-        >
-          <Plus className="w-5 h-5" />
-          Log Settlement Disbursement
-        </button>
+        {isOwner && (
+          <button 
+            onClick={() => setShowAdd(true)}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg active:scale-95"
+          >
+            <Plus className="w-5 h-5" />
+            Log Settlement Disbursement
+          </button>
+        )}
       </div>
 
       <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm">
@@ -141,16 +166,19 @@ export function VendorSettlementsView({
                 <th className="px-6 py-5 cursor-pointer group" onClick={() => requestSort('vendorId')}>
                   <div className="flex items-center">Contractor <SortIcon column="vendorId" /></div>
                 </th>
+                <th className="px-6 py-5">Project Assignment</th>
                 <th className="px-6 py-5 text-center">Scope</th>
                 <th className="px-6 py-5 text-right cursor-pointer group" onClick={() => requestSort('amount')}>
                   <div className="flex items-center justify-end">Volume <SortIcon column="amount" /></div>
                 </th>
                 <th className="px-6 py-5 text-right">Proof</th>
+                {isOwner && <th className="px-6 py-5 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-800">
               {sortedCosts.map((c, idx) => {
                 const vendor = vendors.find(v => v.id === c.vendorId);
+                const project = projects.find(p => p.id === c.project_id);
                 return (
                   <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-all">
                     <td className="px-6 py-5">
@@ -168,6 +196,12 @@ export function VendorSettlementsView({
                           <Users className="w-4 h-4" />
                         </div>
                         <span className="text-sm font-bold tracking-tight italic">{vendor?.name || 'Unknown Entity'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm tracking-tight">{project?.name || 'Unknown'}</span>
+                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider font-mono">{c.project_id}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
@@ -192,6 +226,26 @@ export function VendorSettlementsView({
                         <span className="text-[9px] font-black uppercase text-gray-300">Pending</span>
                       )}
                     </td>
+                    {isOwner && (
+                      <td className="px-6 py-5 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => setEditingCost(c)}
+                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 rounded-lg transition-colors"
+                            title="Edit Settlement"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(c.id)}
+                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 rounded-lg transition-colors"
+                            title="Delete Settlement"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -201,7 +255,7 @@ export function VendorSettlementsView({
       </div>
 
       <AnimatePresence>
-        {showAdd && (
+        {(showAdd || editingCost) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
@@ -211,20 +265,30 @@ export function VendorSettlementsView({
             >
               <div className="px-10 py-8 border-b dark:border-gray-800 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black italic">Log Vendor Disbursement</h3>
+                  <h3 className="text-2xl font-black italic">{editingCost ? 'Modify Vendor Disbursement' : 'Log Vendor Disbursement'}</h3>
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
                     System Entity: Operational Ledger
                   </p>
                 </div>
-                <button onClick={() => setShowAdd(false)} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl transition-colors">
+                <button onClick={() => { setShowAdd(false); setEditingCost(null); }} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleAdd} className="p-10 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
+              <form onSubmit={handleSave} className="p-10 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
+                <div className="space-y-1">
+                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Project Assignment</label>
+                   <select name="project_id" defaultValue={editingCost?.project_id} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Select Project...</option>
+                      {projects.map(proj => (
+                        <option key={proj.id} value={proj.id}>{proj.name} ({proj.id})</option>
+                      ))}
+                   </select>
+                </div>
+
                 <div className="space-y-1">
                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Select Vendor Entity</label>
-                   <select name="vendorId" required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
+                   <select name="vendorId" defaultValue={editingCost?.vendorId} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner">
                       <option value="">Choose Vendor...</option>
                       {vendors.map(v => (
                         <option key={v.id} value={v.id}>{v.name}</option>
@@ -235,18 +299,18 @@ export function VendorSettlementsView({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Execution Date</label>
-                    <input name="date" type="date" required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input name="date" type="date" defaultValue={editingCost?.date} required className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Volume (₹)</label>
-                    <input name="amount" type="number" step="0.01" required placeholder="0.00" className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-black text-blue-600 outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input name="amount" type="number" step="0.01" defaultValue={editingCost?.amount} required placeholder="0.00" className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-black text-blue-600 outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Work Category</label>
-                    <select name="section" className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold">
+                    <select name="section" defaultValue={editingCost?.section} className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-bold">
                       <option value="Civil">Civil</option>
                       <option value="Electrical">Electrical</option>
                       <option value="Plumbing">Plumbing</option>
@@ -257,7 +321,7 @@ export function VendorSettlementsView({
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Invoice Document</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Invoice Document {editingCost?.attachment && <span className="text-blue-500">(Current: {editingCost.attachment})</span>}</label>
                     <div className="relative group overflow-hidden">
                       <input name="attachment" type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                       <div className="flex flex-col items-center justify-center p-3 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl bg-gray-50 dark:bg-gray-900 group-hover:bg-gray-100 dark:group-hover:bg-gray-800/50 transition-all">
@@ -270,14 +334,14 @@ export function VendorSettlementsView({
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Scope Details</label>
-                  <textarea name="description" rows={3} placeholder="Add specific details regarding this settlement disbursement..." className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-medium resize-none outline-none focus:ring-2 focus:ring-blue-500" />
+                  <textarea name="description" defaultValue={editingCost?.description} rows={3} placeholder="Add specific details regarding this settlement disbursement..." className="w-full p-4 bg-gray-50 dark:bg-gray-900 border dark:border-gray-800 rounded-xl font-medium resize-none outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
 
                 <div className="pt-6 flex gap-4">
                   <button type="submit" className="flex-1 py-5 rounded-2xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
-                    Initialize Disbursement
+                    {editingCost ? 'Update Disbursement' : 'Initialize Disbursement'}
                   </button>
-                  <button type="button" onClick={() => setShowAdd(false)} className="px-10 py-5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-xs uppercase tracking-widest">
+                  <button type="button" onClick={() => { setShowAdd(false); setEditingCost(null); }} className="px-10 py-5 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-black text-xs uppercase tracking-widest">
                     Cancel
                   </button>
                 </div>

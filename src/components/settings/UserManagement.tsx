@@ -13,7 +13,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Role } from '../../mockData';
+import { Role } from '../objects/role';
+import { User } from '../objects/user';
 
 interface UserManagementProps {
   users: User[];

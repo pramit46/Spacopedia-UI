@@ -12,7 +12,8 @@ import {
   ExternalLink 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, WeeklyStatus, ChatMessage } from '../mockData';
+import { WeeklyStatus, ChatMessage } from './objects/weekly-status';
+import { User } from './objects/user';
 
 interface WeeklyStatusViewProps {
   currentUser: User;
@@ -92,9 +93,18 @@ export function WeeklyStatusView({
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-2 px-1">Phase Verification Log</div>
+          <div className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-2 px-1 flex items-center gap-2">
+            Phase Verification Log
+            {/*{selectedLog.source === 'external' ? (
+              <span className="px-2 py-0.5 bg-green-500 text-white text-[8px] rounded-full animate-pulse">Server Live</span>
+            ) : (
+              <span className="px-2 py-0.5 bg-gray-400 text-white text-[8px] rounded-full">Mock Data / Connection Offline</span>
+            )}*/}
+          </div>
           <h2 className="text-4xl font-black tracking-tight">
-            {new Date(selectedLog.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(selectedLog.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            {selectedLog.startDate && !isNaN(new Date(selectedLog.startDate).getTime()) 
+              ? `${new Date(selectedLog.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${new Date(selectedLog.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+              : 'Weekly Progress Report'}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Logged on {selectedLog.date} by System Node</p>
         </div>
